@@ -1,0 +1,9 @@
+# copy this file to config.yml and edit
+---
+username: yourwrmsusername
+password: yourwrmspassword
+site: https://wrms.catalyst.net.nz
+wrmap:
+  project1meetings: 40650
+  project1dev: 39905
+  project2: 807
