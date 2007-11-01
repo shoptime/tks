@@ -1,0 +1,31 @@
+# vim:filetype=yaml
+---
+date: 2007-10-01
+comment: MFE Research
+wr: 42305
+time: 2
+---
+date: 2007-10-02
+comment: Helping Julian get up to speed
+wr: drivesouth
+time: 2
+---
+date: 2007-10-02
+comment: Speeks development
+wr: speeks
+time: 3
+---
+date: 2007-10-03
+comment: DR Setup
+wr: 33046
+time: 3
+---
+date: 2007-10-04
+comment: DR Firewalling
+wr: 33046
+time: 3
+---
+date: 2007-10-04
+comment: Speeks development
+wr: speeks
+time: 3
