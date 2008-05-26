@@ -13,12 +13,12 @@ my $config = YAML::LoadFile($FindBin::Bin . '/config.yml');
 my $args = Getopt::Declare->new(q(
     [strict]
     -c                     	Write data to WRMS (by default just prints what _would_ happen)
-    <yamlfile>             	File to proces [required]
+    <file>              	File to process [required]
 ));
 
 die unless defined $args;
 
-my @data = YAML::LoadFile($args->{'<yamlfile>'});
+my @data = WRMS::load_timesheet_file($args->{'<file>'});
 
 # connect to wrms
 my $wrms    = WRMS->new({
@@ -33,13 +33,20 @@ my $wrmap = $config->{wrmap};
 
 my $total_time = 0;
 
-# loop over yaml data
+# if the wr is in the map, substitute
+foreach my $entry ( @data ) {
+    $entry->{wr} = $wrmap->{$entry->{wr}} if exists $wrmap->{$entry->{wr}};
+    $entry->{wr} = int($entry->{wr});
+}
+
+# sort dataz by date, then WR
+@data = sort { $a->{date} cmp $b->{date} or $a->{wr} <=> $b->{wr} } @data;
+
+# loop over data
+my $current_date = '';
 foreach my $entry ( @data ) {
     # don't want data with no wr
     next unless defined $entry->{wr};
-
-    # if the wr is in the map, substitute
-    $entry->{wr} = $wrmap->{$entry->{wr}} if exists $wrmap->{$entry->{wr}};
 
     # unless we have something that looks like a wr, skip
     unless ( $entry->{wr} =~ m{ \A \d+ \z }xms ) {
@@ -50,8 +57,13 @@ foreach my $entry ( @data ) {
     # unless we have some time
     next unless defined $entry->{time} and $entry->{time} =~ m{ \d }xms;
 
+    # output blank line for new date
+    print "\n" if $current_date and $current_date ne $entry->{date};
+    $current_date = $entry->{date};
+
     $total_time += $entry->{time};
-    print $entry->{date}, " - ", $entry->{wr}, " - ", $entry->{time}, "\n";
+    printf("%s\t%5d\t%.2f\t%s", $entry->{date}, $entry->{wr}, $entry->{time}, $entry->{comment});
+    print "\n";
 
     next unless $args->{'-c'};
 
@@ -64,4 +76,7 @@ foreach my $entry ( @data ) {
     );
 }
 
+print "\n";
 print "Total time: $total_time\n";
+
+print "Run this program again with -c to commit the work\n" unless $args->{'-c'};
