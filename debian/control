@@ -10,7 +10,7 @@ Vcs-Browser: http://gitprivate.catalyst.net.nz/gw?p=tks.git;a=summary
 
 Package: tks
 Architecture: all
-Depends: libwww-mechanize-perl (>= 1.34), libcrypt-ssleay-perl
+Depends: libwww-mechanize-perl (>= 1.34), libcrypt-ssleay-perl, libgetopt-declare-perl, libconfig-inifiles-perl, libxml-libxml-perl, libfile-slurp-perl
 Description: Time keeping sucks. TKS makes it suck less.
  Now you can record your timesheets in a simple, readable format, and run a
  script to send the data to WRMS. No more dealing with that pesky web
