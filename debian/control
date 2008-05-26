@@ -1,0 +1,17 @@
+Source: tks
+Section: utils
+Priority: optional
+Maintainer: Nigel McNie <nigel@catalyst.net.nz>
+Build-Depends: debhelper (>= 5)
+Standards-Version: 3.7.3
+Homepage: http://wiki.wgtn.cat-it.co.nz/wiki/TKS
+Vcs-Git: git+ssh://gitprivate.catalyst.net.nz/git/private/tks.git
+Vcs-Browser: http://gitprivate.catalyst.net.nz/gw?p=tks.git;a=summary
+
+Package: tks
+Architecture: all
+Depends: libwww-mechanize-perl (>= 1.34), libcrypt-ssleay-perl
+Description: Time keeping sucks. TKS makes it suck less.
+ Now you can record your timesheets in a simple, readable format, and run a
+ script to send the data to WRMS. No more dealing with that pesky web
+ interface.
