@@ -5,10 +5,11 @@ use warnings;
 use FindBin;
 use lib $FindBin::Bin . '/lib';
 use Getopt::Declare;
-use YAML;
+use Config::IniFiles;
 use WRMS;
 
-my $config = YAML::LoadFile($FindBin::Bin . '/config.yml');
+my %config;
+tie %config, 'Config::IniFiles', ( -file => $ENV{HOME} . '/.tksrc' );
 
 my $args = Getopt::Declare->new(q(
     [strict]
@@ -22,14 +23,14 @@ my @data = WRMS::load_timesheet_file($args->{'<file>'});
 
 # connect to wrms
 my $wrms    = WRMS->new({
-    username => $config->{username},
-    password => $config->{password},
-    site => $config->{site},
-    login => 1,
+    username => $config{default}{username},
+    password => $config{default}{password},
+    site     => $config{default}{site},
+    login    => 1,
 });
 
 # map of textual representations for WRs
-my $wrmap = $config->{wrmap};
+my $wrmap = $config{'wrmap'};
 
 my $total_time = 0;
 
