@@ -44,6 +44,7 @@ foreach my $entry ( @data ) {
 
 # loop over data
 my $current_date = '';
+my $current_date_hoursum = 0.0;
 foreach my $entry ( @data ) {
     # don't want data with no wr
     next unless defined $entry->{wr};
@@ -58,7 +59,14 @@ foreach my $entry ( @data ) {
     next unless defined $entry->{time} and $entry->{time} =~ m{ \d }xms;
 
     # output blank line for new date
-    print "\n" if $current_date and $current_date ne $entry->{date};
+    if ( $current_date and $current_date ne $entry->{date} ) {
+        # time to print a summary
+        printf("\t\t%.2f\n\n", $current_date_hoursum);
+        $current_date_hoursum = 0.0;
+    }
+    else {
+        $current_date_hoursum += $entry->{time};
+    }
     $current_date = $entry->{date};
 
     $total_time += $entry->{time};
@@ -76,7 +84,8 @@ foreach my $entry ( @data ) {
     );
 }
 
-print "\n";
+# The final summary
+printf("\t\t%.2f\n\n", $current_date_hoursum);
 print "Total time: $total_time\n";
 
 print "Run this program again with -c to commit the work\n" unless $args->{'-c'};
