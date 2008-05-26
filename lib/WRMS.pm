@@ -226,6 +226,50 @@ sub parse_page {
     croak q{Couldn't parse '} . $self->{mech}->uri() . q{'};
 }
 
+sub load_timesheet_file {
+    my ($file) = @_;
+
+    my ($DATE, $WR, $TIME, $DESC);
+    my @result;
+
+    open(FH, "<$file");
+    while (my $line = <FH>) {
+        # Strip comments
+        next if $line =~ m/^ \s* \#/xms;
+
+        if (
+            $line =~ m{^ ( \d+ / \d+ / \d\d (\d\d)? ) }xms or  # dd/mm/yy or dd/mm/yyyy
+            $line =~ m{^ ( \d{4} / \d+ / \d+ ) }xms            # yyyy/mm/dd
+        ) {
+            $DATE = $1;
+            next;
+        }
+
+        if ( $line =~ m{\A
+                ( \d+ | [a-zA-Z0-9_-]+ ) \s+   # Work request number OR alias
+                ( \d+ | \d* \. \d+ ) \s+       # Time in integer or decibal
+                ( .* ) \z}xms ) {
+            $WR   = $1;
+            $TIME = $2;
+            $DESC = $3;
+            chomp $DESC;
+
+            my $row = {
+                'wr'      => $WR,
+                'date'    => $DATE,
+                'comment' => $DESC,
+                'time'    => $TIME,
+            };
+
+            push @result, $row;
+        }
+
+    }
+    close FH;
+
+    return @result;
+}
+
 sub last_error {
     my ($self) = @_;
 
