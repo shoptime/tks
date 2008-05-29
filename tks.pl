@@ -37,8 +37,13 @@ my $total_time = 0;
 # if the wr is in the map, substitute
 foreach my $entry ( @data ) {
     $entry->{wr} = $wrmap->{$entry->{wr}} if exists $wrmap->{$entry->{wr}};
-    $entry->{wr} = int($entry->{wr});
+    unless ( $entry->{wr} =~ m{ \A \d+ \z }xms ) {
+        warn "Invalid WR '$entry->{wr}'\n";
+        # TODO: perhaps interactively add these?
+    }
 }
+
+@data = grep { $_->{wr} =~ m{ \A \d+ \z }xms } @data;
 
 # sort dataz by date, then WR
 @data = sort { $a->{date} cmp $b->{date} or $a->{wr} <=> $b->{wr} } @data;
