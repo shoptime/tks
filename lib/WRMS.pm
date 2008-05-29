@@ -239,7 +239,8 @@ sub load_timesheet_file {
 
         if (
             $line =~ m{^ ( \d+ / \d+ / \d\d (\d\d)? ) }xms or  # dd/mm/yy or dd/mm/yyyy
-            $line =~ m{^ ( \d{4} / \d+ / \d+ ) }xms            # yyyy/mm/dd
+            $line =~ m{^ ( \d{4} / \d+ / \d+ ) }xms or         # yyyy/mm/dd
+            $line =~ m{^ ( \d{4} - \d+ - \d+ ) }xms            # yyyy/mm/dd
         ) {
             $DATE = $1;
             next;
