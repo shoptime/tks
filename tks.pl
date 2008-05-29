@@ -68,7 +68,7 @@ foreach my $entry ( @data ) {
     if ( $current_date and $current_date ne $entry->{date} ) {
         # time to print a summary
         printf("\t\t%.2f\n\n", $current_date_hoursum);
-        $current_date_hoursum = 0.0;
+        $current_date_hoursum = $entry->{time};
     }
     else {
         $current_date_hoursum += $entry->{time};
