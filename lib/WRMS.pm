@@ -1,4 +1,20 @@
 #!/usr/bin/perl
+#
+# WRMS.pm: interface with Work Request Management System
+# Copyright (C) 2008 Catalyst IT Ltd (http://www.catalyst.net.nz)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package WRMS;
 
@@ -226,50 +242,6 @@ sub parse_page {
     croak q{Couldn't parse '} . $self->{mech}->uri() . q{'};
 }
 
-sub load_timesheet_file {
-    my ($file) = @_;
-
-    my ($DATE, $WR, $TIME, $DESC);
-    my @result;
-
-    open(FH, "<$file");
-    while (my $line = <FH>) {
-        # Strip comments
-        next if $line =~ m/^ \s* \#/xms;
-
-        if (
-            $line =~ m{^ ( \d+ / \d+ / \d\d (\d\d)? ) }xms or  # dd/mm/yy or dd/mm/yyyy
-            $line =~ m{^ ( \d{4} / \d+ / \d+ ) }xms or         # yyyy/mm/dd
-            $line =~ m{^ ( \d{4} - \d+ - \d+ ) }xms            # yyyy-mm-dd
-        ) {
-            $DATE = $1;
-            next;
-        }
-
-        if ( $line =~ m{\A
-                ( \d+ | [a-zA-Z0-9_-]+ ) \s+   # Work request number OR alias
-                ( \d+ | \d* \. \d+ ) \s+       # Time in integer or decibal
-                ( .* ) \z}xms ) {
-            $WR   = $1;
-            $TIME = $2;
-            $DESC = $3;
-            chomp $DESC;
-
-            my $row = {
-                'wr'      => $WR,
-                'date'    => $DATE,
-                'comment' => $DESC,
-                'time'    => $TIME,
-            };
-
-            push @result, $row;
-        }
-
-    }
-    close FH;
-
-    return @result;
-}
 
 sub last_error {
     my ($self) = @_;

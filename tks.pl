@@ -1,4 +1,20 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
+#
+# TKS: Timekeeping sucks. TKS makes it suck less.
+# Copyright (C) 2008 Catalyst IT Ltd (http://www.catalyst.net.nz)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use strict;
 use warnings;
@@ -6,6 +22,9 @@ use FindBin;
 use lib $FindBin::Bin . '/lib';
 use Getopt::Declare;
 use Config::IniFiles;
+use File::Slurp;
+use List::Util qw(sum);
+use Data::Dumper;
 use WRMS;
 
 my %config;
@@ -14,12 +33,15 @@ tie %config, 'Config::IniFiles', ( -file => $ENV{HOME} . '/.tksrc' );
 my $args = Getopt::Declare->new(q(
     [strict]
     -c                     	Write data to WRMS (by default just prints what _would_ happen)
+    -v                  	Verbose mode; describe the parsing of the timekeeping file
     <file>              	File to process [required]
 ));
 
 die unless defined $args;
+my $VERBOSE = $args->{'-v'};
 
-my @data = WRMS::load_timesheet_file($args->{'<file>'});
+my $tkdata = load_timesheet_file($args->{'<file>'});
+#print Dumper($tkdata);
 
 # connect to wrms
 my $wrms    = WRMS->new({
@@ -32,66 +54,153 @@ my $wrms    = WRMS->new({
 # map of textual representations for WRs
 my $wrmap = $config{'wrmap'};
 
-my $total_time = 0;
-
 # if the wr is in the map, substitute
-foreach my $entry ( @data ) {
-    $entry->{wr} = $wrmap->{$entry->{wr}} if exists $wrmap->{$entry->{wr}};
-    unless ( $entry->{wr} =~ m{ \A \d+ \z }xms ) {
-        warn "Invalid WR '$entry->{wr}'\n";
-        # TODO: perhaps interactively add these?
+foreach my $date ( keys %{$tkdata} ) {
+    foreach my $entry ( @{$tkdata->{$date}} ) {
+        $entry->{wr} = $wrmap->{$entry->{wr}} if exists $wrmap->{$entry->{wr}};
+        unless ( $entry->{wr} =~ m{ \A \d+ \z }xms ) {
+            warn "Invalid WR '$entry->{wr}'\n";
+            # TODO: perhaps interactively add these?
+            $entry = undef;
+        }
     }
 }
 
-@data = grep { $_->{wr} =~ m{ \A \d+ \z }xms } @data;
+# look through data for WR info, print it and potentially commit
+my @lines = read_file($args->{'<file>'});
+my $file_needs_write = 0;
+my $total_time = 0.0;
 
-# sort dataz by date, then WR
-@data = sort { $a->{date} cmp $b->{date} or $a->{wr} <=> $b->{wr} } @data;
+foreach my $date ( sort keys %{$tkdata} ) {
+    my $date_has_data = 0;
+    @{$tkdata->{$date}} = grep { exists $_->{wr} and $_->{wr} =~ m{ \A \d+ \z }xms } @{$tkdata->{$date}};
+    foreach my $entry ( sort { $a->{wr} <=> $b->{wr} } @{$tkdata->{$date}} ) {
+        $date_has_data = 1;
 
-# loop over data
-my $current_date = '';
-my $current_date_hoursum = 0.0;
-foreach my $entry ( @data ) {
-    # don't want data with no wr
-    next unless defined $entry->{wr};
+        printf("%s\t%5d\t%.2f\t%s\n", $date, $entry->{wr}, $entry->{time}, $entry->{comment});
 
-    # unless we have something that looks like a wr, skip
-    unless ( $entry->{wr} =~ m{ \A \d+ \z }xms ) {
-        warn "Invalid WR: $entry->{wr}";
-        next;
+        next unless $args->{'-c'};
+
+        # add the time to wrms
+        $wrms->add_time(
+            $entry->{wr},
+            $date,
+            $entry->{comment},
+            $entry->{time},
+        );
+
+        # comment it out in the file
+        @lines[$entry->{linenumber} - 1] = '# ' . @lines[$entry->{linenumber} - 1];
+        $file_needs_write = 1;
     }
 
-    # unless we have some time
-    next unless defined $entry->{time} and $entry->{time} =~ m{ \d }xms;
 
-    # output blank line for new date
-    if ( $current_date and $current_date ne $entry->{date} ) {
-        # time to print a summary
-        printf("\t\t%.2f\n\n", $current_date_hoursum);
-        $current_date_hoursum = $entry->{time};
-    }
-    else {
-        $current_date_hoursum += $entry->{time};
-    }
-    $current_date = $entry->{date};
-
-    $total_time += $entry->{time};
-    printf("%s\t%5d\t%.2f\t%s", $entry->{date}, $entry->{wr}, $entry->{time}, $entry->{comment});
-    print "\n";
-
-    next unless $args->{'-c'};
-
-    # add the time to wrms
-    $wrms->add_time(
-        $entry->{wr},
-        $entry->{date},
-        $entry->{comment},
-        $entry->{time},
-    );
+    my $day_time_taken = sum map { $_->{time} or 0 } @{$tkdata->{$date}};
+    printf(" " x length($date) . "\t\t%.2f\n\n", $day_time_taken) if $date_has_data;
+    $total_time += $day_time_taken if $day_time_taken;
 }
 
-# The final summary
-printf("\t\t%.2f\n\n", $current_date_hoursum);
-print "Total time: $total_time\n";
+write_file($args->{'<file>'}, @lines) if $file_needs_write;
 
+print "Total time: ", $total_time, "\n";
 print "Run this program again with -c to commit the work\n" unless $args->{'-c'};
+
+
+
+
+
+# Named for compatibility with scriptalicious
+sub mutter {
+    print shift if $VERBOSE;
+}
+
+# Loads data from a TKS timesheet file into a structure looking like this:
+#
+# [
+#    'date' => [
+#               {
+#                   'line'    => 'original line in the tks file',
+#                   'wr'      => WR number for this line (if any)
+#                   'time'    => Amount of time spent
+#                   'comment' => Comment for this line of work
+#               },
+#               {
+#                   'line' => ...
+#               }
+#              ],
+#    'date' => [
+#               ...
+#              ]
+# ]
+sub load_timesheet_file {
+    my ($file) = @_;
+
+    my $result = {};
+    my $current_date = '';
+    my @lines = read_file($file);
+
+    my $i = 0;
+    foreach my $line ( @lines ) {
+        my $linedata = parse_line($line);
+        $linedata->{linenumber} = ++$i;
+
+        if ( $linedata->{wr} ) {
+            mutter " ** WR: $linedata->{wr}" . (" " x (16 - length($linedata->{wr}))) . "TIME: $linedata->{time}   COMMENT: $linedata->{comment}\n";
+            unless ( $current_date ) {
+                die "Whoops - timesheet data encountered before date?";
+            }
+
+            push @{$result->{$current_date}}, $linedata;
+        }
+        elsif ( $linedata->{date} ) {
+            mutter " * Date: $linedata->{date}\n";
+            if ( $current_date ne $linedata->{date} ) {
+                $current_date = $linedata->{date};
+                $result->{$current_date} = [];
+            }
+        }
+        else {
+            mutter "Boring line: $line";
+        }
+    }
+
+    return $result;
+}
+
+# Examine the line for timekeeping information. Returns a hashref describing
+# the data retrieved.
+#
+# This hashref always has a 'line' key, containing the contents of the line. If
+# the line had valid timesheeting information on it too, that is returned
+# (using the 'wr', 'date', 'time' and 'comment' fields)
+sub parse_line {
+    my ($line) = @_;
+
+    my $result = {};
+    $result->{line} = $line;
+
+    return $result if $line =~ m/^ \s* \#/xms;
+
+    if (
+        $line =~ m{^ ( \d+ / \d+ / \d\d (\d\d)? ) }xms   # dd/mm/yy or dd/mm/yyyy
+        or $line =~ m{^ ( \d{4} / \d+ / \d+ ) }xms       # yyyy/mm/dd
+        or $line =~ m{^ ( \d{4} - \d+ - \d+ ) }xms       # yyyy-mm-dd
+    ) {
+        $result->{date} = $1;
+        return $result;
+    }
+
+    if ( $line =~ m{\A
+            ( \d+ | [a-zA-Z0-9_-]+ ) \s+   # Work request number OR alias
+            ( \d+ | \d* \. \d+ ) \s+       # Time in integer or decibal
+            ( .* ) \z}xms ) {
+        $result->{wr}      = $1;
+        $result->{time}    = $2;
+        $result->{comment} = $3;
+        chomp $result->{comment};
+
+    }
+
+    return $result;
+}
+
