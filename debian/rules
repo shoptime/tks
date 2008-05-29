@@ -29,6 +29,15 @@ binary:
 	cp $(CURDIR)/tks.pl $(CURDIR)/debian/tks/usr/bin/tks
 	cp -R $(CURDIR)/lib/WRMS* $(CURDIR)/debian/tks/usr/share/perl5
 	
+	# Vim auto-syntax-highlighting stuff
+	cp ext/vim/syntax/tks.vim \
+	    $(CURDIR)/debian/tks/usr/share/vim/vim70/syntax/
+	cp ext/vim/syntax/tks.vim \
+	    $(CURDIR)/debian/tks/usr/share/vim/vim71/syntax/
+	cp ext/vim/ftdetect/tks.vim               \
+	    $(CURDIR)/debian/tks/usr/share/vim/addons/ftdetect/
+	
+	
 	dh_gencontrol
 	dh_md5sums
 	
