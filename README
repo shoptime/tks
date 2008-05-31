@@ -1,0 +1,36 @@
+TKS: Time Keeping Sucks
+=======================
+
+Everyone knows that timekeeping sucks. TKS is designed to make it suck less.
+You can keep track of your time in a human-readable file, then run a script to
+import the data straight into WRMS.
+
+TKS has several nice features, such as vim syntax highlighting for the
+timekeeping file, debian packaged for easy installation, a checking mode where
+you can see what TKS will do without committing the data to WRMS and automatic
+commenting out of timesheet entries committed to WRMS.
+
+TKS is written by Nigel McNie and Martyn Smith.
+
+You can find out more about TKS on the wikipage:
+
+  http://wiki.wgtn.cat-it.co.nz/wiki/TKS
+
+To install, type `make' to build a debian package in the parent directory, and
+install that.
+
+
+TKS is copyright (C) 2008, Catalyst IT Ltd.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
