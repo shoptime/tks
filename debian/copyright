@@ -1,0 +1,30 @@
+This package was debianized by Nigel McNie <nigel@catalyst.net.nz> on
+Sat, 31 May 2008 15:58:15 +1300.
+
+It was downloaded from http://git.catalyst.net.nz/
+
+Upstream Authors:
+    Nigel McNie <nigel@catalyst.net.nz>
+    Martyn Smith <martyn@catalyst.net.nz>
+
+Copyright: (C) 2008 Catalyst IT Ltd http://catalyst.net.nz
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+ 
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+You are free to distribute this software under the terms of the GNU General
+Public License. On Debian systems, the complete text of the GNU General
+Public License can be found in /usr/share/common-licenses/GPL-3 file.
+
+The Debian packaging is (C) 2007-2008, Catalyst IT <dev@mahara.org> and is
+licensed under the GPL, see `/usr/share/common-licenses/GPL'.
