@@ -12,13 +12,11 @@ clean:
 	dh_clean 
 
 binary:
-	#cp site-crondispatcher.sh site-crondispatcher
-	#chmod +x site-crondispatcher
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs 
 	dh_installdocs
-	#dh_installman site-crondispatcher.8
+	dh_installman tks.1
 	dh_compress 
 	dh_fixperms
 	
@@ -42,6 +40,5 @@ binary:
 	dh_md5sums
 	
 	dh_builddeb
-	#rm site-crondispatcher
 
 .PHONY: build clean binary
