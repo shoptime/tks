@@ -49,7 +49,7 @@ my $wrms    = WRMS->new({
     password => $config{default}{password},
     site     => $config{default}{site},
     login    => 1,
-});
+}) if $args->{'-c'};
 
 # map of textual representations for WRs
 my $wrmap = $config{'wrmap'};
