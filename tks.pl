@@ -173,6 +173,7 @@ sub load_timesheet_file {
 # This hashref always has a 'line' key, containing the contents of the line. If
 # the line had valid timesheeting information on it too, that is returned
 # (using the 'wr', 'date', 'time' and 'comment' fields)
+my $lastline;
 sub parse_line {
     my ($line) = @_;
 
@@ -192,15 +193,59 @@ sub parse_line {
 
     if ( $line =~ m{\A
             ( \d+ | [a-zA-Z0-9_-]+ ) \s+   # Work request number OR alias
-            ( \d+ | \d* \. \d+ ) \s+       # Time in integer or decibal
+            ( \d\d? | \d* \. \d+ ) \s+     # Time in integer or decimal
             ( .* ) \z}xms ) {
         $result->{wr}      = $1;
         $result->{time}    = $2;
         $result->{comment} = $3;
         chomp $result->{comment};
+    }
+
+    if ( $line =~ m{\A
+            ( \d+ | [a-zA-Z0-9_-]+ ) \s+              # Work request number OR alias
+            ( \d\d?:?\d\d ( \- \d\d?:?\d\d )? ) \s+   # Time specified in 24 hour time
+            ( .* ) \z}xms ) {
+        mutter " ** Found a time-based line: $1   $2\n";
+        $result->{wr} = $1;
+        $result->{comment} = $4;
+        chomp $result->{comment};
+
+        my $time = $2;
+
+        # If we have a start-to-end formatted time
+        if ( $time =~ m/-/ ) {
+            my ($start, $end) = split(/-/, $time);
+            $start = convert_to_minutes($start);
+            $end   = convert_to_minutes($end);
+            $result->{time} = ($end - $start) / 60;
+
+            $lastline->{time} = ($start - $lastline->{time}) / 60 if $lastline->{needs_closing_time};
+            $lastline->{needs_closing_time} = 0;
+        }
+        else {
+            $lastline->{time} = (convert_to_minutes($time) - $lastline->{time}) / 60 if $lastline->{needs_closing_time};
+
+            # We have a starting date only - need to wait for the next line
+            $result->{needs_closing_time} = 1;
+            $result->{time} = convert_to_minutes($time);
+            $lastline = $result;
+        }
 
     }
 
     return $result;
 }
 
+
+sub convert_to_minutes {
+    my ($time) = @_;
+    if ( $time =~ m/:/ ) {
+        my ($hours, $minutes) = split(/:/, $time);
+        return $hours * 60 + $minutes;
+    }
+    elsif ( length($time) == 4) {
+        # 24 hour time
+        return substr($time, 0, 2) * 60 + substr($time, 2);
+    }
+    die("Time in invalid format: $time");
+}
