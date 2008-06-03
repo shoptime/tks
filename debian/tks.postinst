@@ -1,0 +1,42 @@
+#!/bin/sh
+# postinst script for tks
+#
+# see: dh_installdeb(1)
+
+set -e
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <postinst> `abort-remove'
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see http://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+
+#DEBHELPER#
+
+case "$1" in
+    configure)
+
+        # Install vim plugin
+        for dir in ftdetect ftplugin syntax; do
+            # Ensure required vim plugin dirs exist
+            [ -d /var/lib/vim/addons/$dir ] || mkdir /var/lib/vim/addons/$dir
+
+            [ -L /var/lib/vim/addons/$dir/tks.vim ] || ln -fs /usr/share/tks/vim/$dir/tks.vim /var/lib/vim/addons/$dir/tks.vim
+        done
+
+        ;;
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

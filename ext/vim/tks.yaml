@@ -1,0 +1,7 @@
+addon: tks
+description: "Syntax highlighting for TKS"
+basedir: /usr/share/tks/vim
+files:
+  - syntax/tks.vim
+  - ftplugin/tks.vim
+  - ftdetect/tks.vim

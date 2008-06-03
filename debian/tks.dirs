@@ -1,5 +1,5 @@
 usr/bin
 usr/share/perl5
-usr/share/vim/addons/ftdetect
-usr/share/vim/vim70/syntax
-usr/share/vim/vim71/syntax
+usr/share/tks
+usr/share/tks/vim
+usr/share/vim/registry
