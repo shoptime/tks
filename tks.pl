@@ -102,7 +102,7 @@ foreach my $date ( sort keys %{$tkdata} ) {
 
 write_file($args->{'<file>'}, @lines) if $file_needs_write;
 
-print "Total time: ", $total_time, "\n";
+printf("Total time: %.2f\n", $total_time);
 print "Run this program again with -c to commit the work\n" unless $args->{'-c'} or $total_time == 0;
 
 
