@@ -1,4 +1,4 @@
-tks (0.1.0-2) unstable; urgency=low
+tks (0.1.1-1) unstable; urgency=low
 
   * Make TKS work with etch's WWW::Mechanize
   * Make vim plugin work with vim-addon-manager, while maintaining etch
