@@ -164,6 +164,17 @@ sub load_timesheet_file {
         }
     }
 
+    foreach my $date ( keys %{$result} ) {
+        my $found_error = 0;
+        if ( my @errors = grep { $_->{needs_closing_time} } @{$result->{$date}} ) {
+            $found_error = 1;
+            foreach my $error ( @errors ) {
+                print "Error on line ", $error->{linenumber}, ": no closing time found\n";
+            }
+        }
+        exit 1 if $found_error;
+    }
+
     return $result;
 }
 
@@ -224,6 +235,7 @@ sub parse_line {
         }
         else {
             $lastline->{time} = (convert_to_minutes($time) - $lastline->{time}) / 60 if $lastline->{needs_closing_time};
+            $lastline->{needs_closing_time} = 0;
 
             # We have a starting date only - need to wait for the next line
             $result->{needs_closing_time} = 1;
