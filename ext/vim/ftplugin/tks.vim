@@ -1,3 +1,3 @@
-set tabstop=16
-set shiftwidth=16
-set noexpandtab
+setlocal tabstop=16
+setlocal shiftwidth=16
+setlocal noexpandtab
