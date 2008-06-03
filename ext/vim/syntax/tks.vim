@@ -9,7 +9,7 @@ if exists("b:current_syntax")
 endif
 
 syntax match tksWR "^\s*\S\+" nextgroup=tksTime skipwhite
-syntax match tksTime "\s[0-9.]\+" nextgroup=tksDescription skipwhite contained
+syntax match tksTime "\s[0-9.:-]\+" nextgroup=tksDescription skipwhite contained
 syntax region tksDescription start="\S" end="$" skipwhite contained keepend
 
 syn region comment    start="#" end="$"
