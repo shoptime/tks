@@ -185,8 +185,10 @@ sub add_time {
 
     write_file('WRMS.html', $self->{mech}->response->content);
 
+    $self->{mech}->form_name('form');
+
     $self->{mech}->submit_form(
-        with_fields => {
+        fields => {
             work_on          => $date,
             work_quantity    => $hours,
             work_description => $comment,
