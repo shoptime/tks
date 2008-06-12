@@ -165,14 +165,12 @@ sub load_timesheet_file {
     }
 
     foreach my $date ( keys %{$result} ) {
-        my $found_error = 0;
         if ( my @errors = grep { $_->{needs_closing_time} } @{$result->{$date}} ) {
-            $found_error = 1;
             foreach my $error ( @errors ) {
                 print "Error on line ", $error->{linenumber}, ": no closing time found\n";
             }
+            exit 1;
         }
-        exit 1 if $found_error;
     }
 
     return $result;
