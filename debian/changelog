@@ -1,3 +1,10 @@
+tks (0.2.0-1) unstable; urgency=low
+
+  * Support clock times in the time field
+  * Some other minor bugfixes
+
+ -- Nigel McNie <nigel@mcnie.name>  Thu, 12 Jun 2008 12:00:43 +1200
+
 tks (0.1.1-1) unstable; urgency=low
 
   * Make TKS work with etch's WWW::Mechanize
