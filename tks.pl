@@ -81,6 +81,8 @@ foreach my $date ( sort keys %{$tkdata} ) {
 
         next unless $args->{'-c'};
 
+        $entry->{time} = int($entry->{time} * 100 + .5) / 100;
+
         # add the time to wrms
         $wrms->add_time(
             $entry->{wr},
