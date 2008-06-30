@@ -1,3 +1,12 @@
+tks (0.2.1-1) unstable; urgency=low
+
+  * Bail out if a closing time isn't given for time recorded against a date that isn't at the end of the file.
+  * Don't write out a debugging file when adding time.
+  * Implement "review required" flag.
+  * Round entry times to 2dp, to prevent stupid entries in WRMS.
+
+ -- Nigel McNie <nigel@mcnie.name>  Mon, 30 Jun 2008 12:15:18 +1200
+
 tks (0.2.0-1) unstable; urgency=low
 
   * Support clock times in the time field
