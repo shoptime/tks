@@ -183,8 +183,6 @@ sub add_time {
 
     $self->{mech}->get('/wr.php?request_id=' . $wr . '&edit=1');
 
-    write_file('WRMS.html', $self->{mech}->response->content);
-
     $self->{mech}->form_name('form');
 
     $self->{mech}->submit_form(
