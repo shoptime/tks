@@ -144,8 +144,9 @@ sub load_timesheet_file {
 
     my $i = 0;
     foreach my $line ( @lines ) {
-        my $linedata = parse_line($line);
-        $linedata->{linenumber} = ++$i;
+        ++$i;
+        my $linedata = parse_line($line, $i);
+        $linedata->{linenumber} = $i;
 
         if ( $linedata->{wr} ) {
             mutter " ** WR: $linedata->{wr}" . (" " x (16 - length($linedata->{wr}))) . "TIME: $linedata->{time}   COMMENT: $linedata->{comment}\n";
@@ -194,7 +195,7 @@ sub load_timesheet_file {
 # (using the 'wr', 'date', 'time' and 'comment' fields)
 my $lastline;
 sub parse_line {
-    my ($line) = @_;
+    my ($line, $linenumber) = @_;
 
     my $result = {};
     $result->{line} = $line;
@@ -206,6 +207,10 @@ sub parse_line {
         or $line =~ m{^ ( \d{4} / \d+ / \d+ ) }xms       # yyyy/mm/dd
         or $line =~ m{^ ( \d{4} - \d+ - \d+ ) }xms       # yyyy-mm-dd
     ) {
+        if ( $lastline->{needs_closing_time} ) {
+            print "Error on line $linenumber: no closing time found before date $1\n";
+            exit 1;
+        }
         $result->{date} = $1;
         return $result;
     }
