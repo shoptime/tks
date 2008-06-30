@@ -179,7 +179,7 @@ sub saved_search_list {
 
 
 sub add_time {
-    my ($self, $wr, $date, $comment, $hours) = @_;
+    my ($self, $wr, $date, $comment, $hours, $review_needed) = @_;
 
     $self->{mech}->get('/wr.php?request_id=' . $wr . '&edit=1');
 
@@ -192,6 +192,7 @@ sub add_time {
             work_on          => $date,
             work_quantity    => $hours,
             work_description => $comment,
+            review_needed    => $review_needed ? 'on' : '',
             submit           => 'Update',
         },
         button => 'submit',

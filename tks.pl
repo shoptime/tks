@@ -77,7 +77,7 @@ foreach my $date ( sort keys %{$tkdata} ) {
     foreach my $entry ( sort { $a->{wr} <=> $b->{wr} } @{$tkdata->{$date}} ) {
         $date_has_data = 1;
 
-        printf("%s\t%5d\t%.2f\t%s\n", $date, $entry->{wr}, $entry->{time}, $entry->{comment});
+        printf("%s\t%5d\t%.2f\t%s\n", $date, $entry->{wr}, $entry->{time}, ($entry->{review_needed} ? '[review] ' : '') . $entry->{comment});
 
         next unless $args->{'-c'};
 
@@ -89,6 +89,7 @@ foreach my $date ( sort keys %{$tkdata} ) {
             $date,
             $entry->{comment},
             $entry->{time},
+            $entry->{review_needed},
         );
 
         # comment it out in the file
@@ -150,6 +151,13 @@ sub load_timesheet_file {
             mutter " ** WR: $linedata->{wr}" . (" " x (16 - length($linedata->{wr}))) . "TIME: $linedata->{time}   COMMENT: $linedata->{comment}\n";
             unless ( $current_date ) {
                 die "Whoops - timesheet data encountered before date?";
+            }
+
+            $linedata->{review_needed} = 0;
+            if ( $linedata->{comment} =~ m/ ^ \[ review \] \s* /xms ) {
+                mutter " *** This line requires review: " . $linedata->{line};
+                $linedata->{review_needed} = 1;
+                $linedata->{comment} =~ s/ ^ \[ review \] \s* //xms;
             }
 
             push @{$result->{$current_date}}, $linedata;
