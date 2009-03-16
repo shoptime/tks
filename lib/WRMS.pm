@@ -92,12 +92,11 @@ sub login {
         },
     );
 
-    if ( $mech->response()->content() =~ m{ invalid .* username .* password }xmsi ) {
-        $self->{_error} = qq{Invalid username or password};
-        return $self->{_error};
+    if ( $mech->response()->decoded_content() =~ m{ invalid .* username .* password }xmsi ) {
+        die qq{Invalid username or password};
     }
 
-    unless ( $mech->content() =~ m{ <div \s+ id="top_menu" \s* > .*? > ([^<]*) }xms ) {
+    unless ( $mech->decoded_content() =~ m{ <div \s+ id="top_menu" \s* > .*? > ([^<]*) }xms ) {
         $self->{_error} = q{Couldn't determine "realname" for this WRMS instance};
         return $self->{_error};
     }
@@ -204,7 +203,7 @@ sub get_time {
 
     $self->{mech}->get('/wr.php?request_id=' . $wr);
 
-    croak qq{Request '$wr' is unavailable} if ( $self->{mech}->content() =~ m{ Request .* unavailable }x );
+    croak qq{Request '$wr' is unavailable} if ( $self->{mech}->decoded_content() =~ m{ Request .* unavailable }x );
 
     my $dom = $self->parse_page();
 
@@ -235,7 +234,7 @@ sub parse_page {
         local *STDERR;
         open STDERR, '>', '/dev/null';
 
-        $dom = $self->{parser}->parse_html_string($self->{mech}->content());
+        $dom = $self->{parser}->parse_html_string($self->{mech}->decoded_content());
     }
 
     return $dom if defined $dom;
