@@ -1,3 +1,9 @@
+tks (0.2.2-1) unstable; urgency=low
+
+  * Give better user feedback in case of an error.
+
+ -- Elliot Pahl <elliot@barbary.wgtn.cat-it.co.nz>  Mon, 16 Mar 2009 14:29:52 +1300
+
 tks (0.2.1-1) unstable; urgency=low
 
   * Bail out if a closing time isn't given for time recorded against a date that isn't at the end of the file.
