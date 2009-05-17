@@ -1,0 +1,6 @@
+# This file should fail because there's no date specified before the first
+# entry
+
+1 1 comment
+
+2009-05-17
