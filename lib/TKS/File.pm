@@ -41,7 +41,13 @@ sub as_string {
             $output .= "\n$entry->{date}\n\n";
             $date = $entry->{date};
         }
-        $output .= sprintf "%-5d  %5.2f  %s\n", $entry->{wr}, $entry->{time}, $entry->{comment};
+        $output .= sprintf(
+            "%-5d  %5.2f  %s%s\n",
+            $entry->{wr},
+            $entry->{time},
+            $entry->{needs_review} ? '[review] ' : '',
+            $entry->{comment},
+        );
     };
     $output .= "\n";
     return $output;
@@ -112,12 +118,14 @@ sub parse_line {
             \A
             ( \d+ | [a-zA-Z0-9_-]+ ) \s+  # Work request number OR alias
             ( \d+ | \d* \. \d+ )     \s+  # Time in integer or decimal
-            ( \S .* )                        # Work description
+            ( \[review\] )?          \s*  # Review flag
+            ( \S .* )                     # Work description
             \z
         }xms ) {
-        $result->{wr}      = $1;
-        $result->{time}    = $2;
-        $result->{comment} = $3;
+        $result->{wr}           = $1;
+        $result->{time}         = $2;
+        $result->{needs_review} = $3 ? 1 : 0;
+        $result->{comment}      = $4;
         chomp $result->{comment};
     }
 
@@ -125,11 +133,13 @@ sub parse_line {
             \A
             ( \d+ | [a-zA-Z0-9_-]+ )              \s+ # Work request number OR alias
             ( \d\d?:?\d\d (?: \- \d\d?:?\d\d )? ) \s+ # Time specified in 24 hour time
-            ( \S .* )                                    # Work description
+            ( \[review\] )?                       \s* # Review flag
+            ( \S .* )                                 # Work description
             \z
         }xms ) {
-        $result->{wr}      = $1;
-        $result->{comment} = $3;
+        $result->{wr}           = $1;
+        $result->{needs_review} = $3 ? 1 : 0;
+        $result->{comment}      = $4;
         chomp $result->{comment};
 
         my $time = $2;
