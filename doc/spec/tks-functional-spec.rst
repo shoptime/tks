@@ -79,6 +79,12 @@ installation of tks, to make using it easier and faster.
 The configuration file will be in "ini" [1]_ style format, as this is an easy
 configuration format to read and write.
 
+TKS will search for the config file in the following locations in order, using
+the first one it encounters:
+
+- ``$HOME/.rc/tks``
+- ``$HOME/.tksrc``
+
 INI files are broken up into sections. Each section can contain any number of
 parameters. In lieu of providing a detailed specification, here is an example
 INI file that could be used with tks::
