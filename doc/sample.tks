@@ -1,0 +1,26 @@
+# Sample TKS file
+
+# This is the wall-time format, you just list time (in hours) spent on each request
+# Note the [review] WR, this sets the 'needs review' flag
+16/5/08
+email	0.5	E-mail
+intelperf	0.9	Meeting. Discussions about performance.
+f2f	0.25	Talk to Francois about the f2f module.
+17	0.25	Talk to Elliot about autovserver
+1235	0.3	Mahara unchargable
+maharapromo	0.5	Forums
+intelperf	0.1	Reading SOW
+mpmaint	0.5	Talk to Andy
+maharapromo	0.2	[review] Forums
+timesheets	0.75	Timesheets
+intelperf	3.9	Racking servers
+
+# This is the clock-time format, you record when you start and stop working on each request
+3/6/08
+email	8:45	Email
+raymerrill	9:15-12:30	Reading, analysing document. Meeting with Richardm about it.
+1235	13:30	RSS problem
+waterloo	13:40	Talk with Francois about IRD things 
+intelperf	14:00	Intel Meeting
+mpmaint	14:40	Talk to Richard about Ray Merrill and other Mahara related stuff.
+raymerrill	15:00-18:10	Preparing response to document
