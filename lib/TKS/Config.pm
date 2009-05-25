@@ -7,7 +7,8 @@ use Config::IniFiles;
 
 our @EXPORT = qw(config);
 
-our $config;
+my $config;
+my $request_map;
 
 sub config {
     my ($section, $key) = @_;
@@ -33,6 +34,13 @@ BEGIN {
     }
 
     $config = Config::IniFiles->new( -file => $file, -allowempty => 1 );
+
+    foreach my $key ( $config->Parameters('requestmap') ) {
+        my $value = $config->val('requestmap', $key);
+        if ( ref $value or $value =~ /\n/ ) {
+            die "[requestmap] entry '$key' has multiple mappings in $file\n";
+        }
+    }
 };
 
 1;

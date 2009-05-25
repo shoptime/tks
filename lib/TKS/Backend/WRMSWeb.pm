@@ -20,6 +20,12 @@ sub init {
     my $username = $self->instance_config('username');
     my $password = $self->instance_config('password');
 
+    if ( -t STDERR and ( not $username or not $password ) ) {
+        print STDERR "Please enter details for " . $self->baseurl . "\n";
+        $username ||= $self->read_line('username: ');
+        $password ||= $self->read_password('password: ');
+    }
+
     unless ( $username and $password ) {
         die "Missing username and/or password";
     }
@@ -154,9 +160,13 @@ sub add_timesheet {
     }
 }
 
-sub save_timesheet {
-    my ($self, $date, $timesheet) = @_;
-};
+sub valid_request {
+    my ($self, $request) = @_;
+
+    return 1 if $request =~ m{ \A \d+ \z }xms;
+
+    return
+}
 
 sub parse_page {
     my ($self) = @_;

@@ -1,0 +1,138 @@
+#!/usr/bin/perl
+##############################################################################
+#
+# Script:   tks
+#
+# Author:   Martyn Smith <martyn@catalyst.net.nz>
+#
+# Description:
+#
+# Time keeping sucks. TKS makes it suck less.
+#
+
+use strict;
+use warnings;
+
+use Pod::Usage;
+use Getopt::Long qw(GetOptions);
+use TKS::Backend;
+use TKS::Config;
+
+my(%opt);
+
+if(!GetOptions(\%opt, 'help|?', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color')) {
+    pod2usage(-exitval => 1,  -verbose => 0);
+}
+
+pod2usage(-exitstatus => 0, -verbose => 1) if $opt{help};
+
+$opt{filename} = shift;
+
+$opt{section} ||= 'default';
+$opt{filename} ||= config($opt{section}, 'defaultfile');
+
+$opt{filename} =~ s{ \A ~ / }{"$ENV{HOME}/"}xmse;
+
+if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit))) > 1) {
+    pod2usage(-exitval => 1, -message => "Options commit, list, and edit are mutually exclusive\n", -verbose => 0);
+}
+
+my $backend = TKS::Backend->new($opt{section});
+
+if ( $opt{list} ) {
+    my $timesheet = $backend->get_timesheet($opt{list});
+    ts_print($timesheet);
+}
+elsif ( $opt{edit} ) {
+    my $timesheet = $backend->get_timesheet($opt{edit});
+    $timesheet = $timesheet->edit();
+
+    if ( $timesheet ) {
+        ts_print($timesheet);
+    }
+    else {
+        print "Timesheet wasn't saved, no modifications made\n";
+    }
+
+    # TODO confirm?
+
+    # TODO commit
+
+}
+else {
+    die "No file specified" unless $opt{filename};
+    die "File $opt{filename} not readable" unless -r $opt{filename};
+    my $timesheet = TKS::Timesheet->from_file($opt{filename});
+    $timesheet->backend($backend);
+    ts_print($timesheet);
+    if ( $opt{commit} ) {
+        # TODO commit
+    }
+}
+
+sub ts_print {
+    my ($timesheet) = @_;
+
+    if ( -t STDOUT and not $opt{'no-color'} ) {
+        print $timesheet->as_color_string;
+    }
+    else {
+        print $timesheet->as_string;
+    }
+}
+
+
+exit 0;
+
+__END__
+
+=head1 NAME
+
+tks - Time keeping sucks. TKS makes it suck less.
+
+=head1 DESCRIPTION
+
+Time keeping sucks. TKS makes it suck less.
+
+=head1 SYNOPSIS
+
+  tks [options] [-s <section>] <file> 
+           tks --help
+           tks --version
+
+=head1 OPTIONS
+
+        -s                          Use the configuration for the named section
+                                    in your configuration file
+        --no-color                  Don't output with syntax-highlighting
+                                    (default: use colour if stdout is a tty)
+
+    Options (with a file name):
+
+        -c                          Write data to the backend (by default just
+                                    prints what _would_ happen)
+
+    Options (without a file name):
+
+        -l <datespec>               Lists timesheet entries for <datespec>
+                                    (output is a valid TKS file)
+        -e <datespec>               Open your $EDITOR with the entries for
+                                    <datespec>, and after you've edited them,
+                                    commit them to the system
+
+    <datespec> can be many things: a date (YYYY-MM-DD), a list of dates and/or
+    a mnemonic like 'yesterday'. Consult the manpage for more information.
+
+    Example usage:
+
+        tks mytime.tks            # Parse and output time recorded in this file
+        tks -c mytime.tks         # Commit the time found in this file to the
+                                  # default backend
+        tks -s foo -e 2009-05-25  # Edit the time recorded in system 'foo' on
+                                  # 2009/05/25
+        tks -l lastweek,today     # Output all time recorded in the default
+
+=cut
+
+
+

@@ -4,10 +4,14 @@ use Moose;
 use List::Util qw(sum);
 use Term::ANSIColor;
 use TKS::Entry;
+use TKS::Config;
 use File::Slurp;
+use File::Temp qw(tempfile);
+use Fcntl qw(:DEFAULT :flock);
 use POSIX;
 
 has 'entries' => ( is => 'rw', isa => 'ArrayRef[TKS::Entry]', required => 1, default => sub { [] } );
+has 'backend' => ( is => 'rw', isa => 'TKS::Backend' );
 
 around 'entries' => sub {
     my ($orig, $self) = @_;
@@ -74,9 +78,10 @@ sub from_string {
     delete $timesheet->{parse_filename};
 
     foreach my $entry ( @entries ) {
+        $entry->{request} = config('requestmap', $entry->{request}) || $entry->{request};
         $timesheet->addentry(TKS::Entry->new(
             date         => $entry->{date},
-            request      => $entry->{wr},
+            request      => $entry->{request},
             time         => $entry->{time},
             comment      => $entry->{comment},
             needs_review => $entry->{needs_review},
@@ -114,7 +119,7 @@ sub _from_string_parse_line {
             ( \S .* )                     # Work description
             \z
         }xms ) {
-        $result->{wr}           = $1;
+        $result->{request}      = $1;
         $result->{time}         = $2;
         $result->{needs_review} = $3 ? 1 : 0;
         $result->{comment}      = $4;
@@ -129,7 +134,7 @@ sub _from_string_parse_line {
             ( \S .* )                                 # Work description
             \z
         }xms ) {
-        $result->{wr}           = $1;
+        $result->{request}      = $1;
         $result->{needs_review} = $3 ? 1 : 0;
         $result->{comment}      = $4;
         chomp $result->{comment};
@@ -150,7 +155,7 @@ sub _from_string_parse_line {
 
     }
 
-    if ( $result->{wr} ) {
+    if ( $result->{request} ) {
         unless ( $result->{date} ) {
             $self->_from_string_fail('Encountered timesheet entry before a date was specified');
         }
@@ -303,14 +308,14 @@ sub as_string {
     my $format_hours = sub {
         my ($date_total) = @_;
         return sprintf(
-            "%s#\t%.2f\ttotal hours%s\n",
+            "%s#          %5.2f    total hours%s\n",
             $color ? color('bold blue') : '',
             $date_total,
             $color ? color('reset') : '',
         );
     };
 
-    foreach my $entry ( sort { $a->date cmp $b->date or $a->request <=> $b->request or $a->comment cmp $b->comment } $self->entries ) {
+    foreach my $entry ( sort { $a->date cmp $b->date or $a->request cmp $b->request or $a->comment cmp $b->comment } $self->entries ) {
         unless ( $date and $date eq $entry->date ) {
             if ( defined $date_total ) {
                 $output .= $format_hours->($date_total);
@@ -326,11 +331,15 @@ sub as_string {
             $date_total = 0;
         }
         $date_total += $entry->time;
+        my $request_color = 'yellow';
+        if ( $self->backend and not $self->backend->valid_request($entry->request) ) {
+            $request_color = 'bold red';
+        }
         $output .= sprintf(
-            "%s%d\t%s%.2f\t%s%s%s%s\n",
-            $color ? color('yellow') : '',
+            "%s%-10s %s%5.2f    %s%s%s%s\n",
+            $color ? color($request_color) : '',
             $entry->request,
-            $color ? color('green') : '',
+            $color ? color('reset') . color('green') : '',
             $entry->time,
             $color ? color('red') : '',
             $entry->needs_review ? '[review] ' : '',
@@ -343,11 +352,81 @@ sub as_string {
     }
     $output .= "\n";
 
-    $output .= $color ? color('bold blue') : '';
-    $output .= "# Total hours: " . $self->time . "\n\n";
-    $output .= $color ? color('reset') : '';
+    if ( $self->time ) {
+        $output .= $color ? color('bold blue') : '';
+        $output .= "# Total hours: " . $self->time . "\n\n";
+        $output .= $color ? color('reset') : '';
+    }
 
     return $output;
+}
+
+sub edit {
+    my ($self) = @_;
+
+    my $string = "# Edit this file to suit, then save and quit\n";
+    $string .= $self->as_string;
+
+    my $timesheet;
+
+    while ( not $timesheet ) {
+        $string  = $self->invoke_editor($string);
+        return unless $string;
+        $timesheet = eval { $self->from_string("\n\n" . $string); };
+        if ( $@ ) {
+            $string =~ s{ ^ \# \s ERROR: .* $ }{}xm;
+            $string =~ s{ \A \s* }{}xms;
+            chomp $@;
+            $string = "# ERROR: $@\n\n$string";
+        }
+    }
+
+    return $timesheet;
+}
+
+# this method based on Term::CallEditor(v0.11)'s solicit method
+# original: Copyright 2004 by Jeremy Mates
+# copied under the terms of the GPL
+sub invoke_editor {
+    my ($self, $string) = @_;
+
+    my $editor = 'vim';
+
+    File::Temp->safe_level(File::Temp::HIGH);
+    my ( $fh, $filename ) = tempfile( UNLINK => 1 );
+
+    # since File::Temp returns both, check both
+    unless ( $fh and $filename ) {
+        die "couldn't create temporary file";
+    }
+
+    select( ( select($fh), $|++ )[0] );
+    print $fh $string;
+
+    # need to unlock for external editor
+    flock $fh, LOCK_UN;
+
+    # run the editor
+    my $mtime = (stat $filename)[9];
+    my $status = system($editor, $filename);
+
+    # check its return value
+    if ( $status != 0 ) {
+        die $status != -1
+            ? "external editor ($editor) failed: $?"
+            : "could not launch ($editor) program: $!";
+    }
+
+    if ( (stat $filename)[9] == $mtime ) {
+        # File wasn't "saved"
+        return;
+    }
+
+    unless ( seek $fh, 0, 0 ) {
+        die "could not seek on temp file: errno=$!";
+    }
+
+    return scalar(read_file($fh));
 }
 
 sub compact {
