@@ -1,3 +1,4 @@
+use lib 'lib/';
 use TKS::Backend;
 use TKS::Backend::WRMSWeb;
 use TKS::File;
