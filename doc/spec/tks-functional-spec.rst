@@ -137,7 +137,106 @@ that users can edit it themselves.
 Running tks
 ^^^^^^^^^^^
 
-Explain all inputs and outputs. flowcharts?
+The TKS binary takes several command line options, which are documented below.
+First, some general principles of tks input and output.
+
+Datespecs
+~~~~~~~~~
+
+Some command line arguments take a 'datespec' as their value. Datespecs
+represent a list of one or more dates. A datespec itself is a list of one or
+more *dateparts*, separated by commas. A datepart is either a date, or a
+mnemonic that represents a date or list of dates.
+
+==========   ==================================================================================== ==========
+Datepart     Description                                                                          Example
+==========   ==================================================================================== ==========
+YYYY-MM-DD   The day specified                                                                    2009/05/25
+YY-MM-DD     The day specified. The year is considered to be in the 21st century.                 09/05/25
+today        The current day
+yesterday    The day before today
+lastweek     The seven days beginning from Monday and ending on the Sunday before the current day
+thismonth    The calendar month enclosing the current date
+lastmonth    The calendar month before the month enclosing the current date
+==========   ==================================================================================== ==========
+
+Colourising output
+~~~~~~~~~~~~~~~~~~
+
+tks --help
+~~~~~~~~~~
+
+TODO:throw error if user does more than one of -c, -e, and -l
+TODO: -s defaults to 'default'
+
+Running ``tks --help`` will print the following message and exit immediately
+with exit status 0::
+
+    nigel@bourdon:~$ tks
+    Usage: tks [options] [-s <section>] <file> 
+           tks --help
+           tks --version
+
+    Options:
+
+        -s                          Use the configuration for the named section
+                                    in your configuration file
+        --no-color                  Don't output with syntax-highlighting
+                                    (default: use colour if stdout is a tty)
+
+    Options (with a file name):
+
+        -c                          Write data to the backend (by default just
+                                    prints what _would_ happen)
+
+    Options (without a file name):
+
+        -l <datespec>               Lists timesheet entries for <datespec>
+                                    (output is a valid TKS file)
+        -e <datespec>               Open your $EDITOR with the entries for
+                                    <datespec>, and after you've edited them,
+                                    commit them to the system
+
+    <datespec> can be many things: a date (YYYY-MM-DD), a list of dates and/or
+    a mnemonic like 'yesterday'. Consult the manpage for more information.
+
+    Example usage:
+
+        tks mytime.tks            # Parse and output time recorded in this file
+        tks -c mytime.tks         # Commit the time found in this file to the
+                                  # default backend
+        tks -s foo -e 2009-05-25  # Edit the time recorded in system 'foo' on
+                                  # 2009/05/25
+        tks -l lastweek,today     # Output all time recorded in the default
+                                  # system from last week and today
+    nigel@bourdon:~$ 
+
+tks --version
+~~~~~~~~~~~~~
+
+This option will cause TKS to print its version number and exit immediately
+with exit status 0::
+
+    nigel@bourdon:~$ tks --version
+    1.0.0
+    nigel@bourdon:~$ 
+
+tks -s <section>
+~~~~~~~~~~~~~~~~
+
+Whenever the ``-s`` option is present, this will cause tks to use the backend
+specified by the appropriate section in the configuration file. If the
+specified section is not present, tks will print an error message and exit
+immediately with exit status 1::
+
+    nigel@bourdon:~$ tks -s badsection
+    Error: the section `badsection' is not defined in your configuration file
+
+tks --no-color
+~~~~~~~~~~~~~~
+
+Whenever the --no-color option is present, tks must not produce any output with the ANSI escape sequences to colourise the output.
+
 
 Vim Syntax Highlighting
 ^^^^^^^^^^^^^^^^^^^^^^^
