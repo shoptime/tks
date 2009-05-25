@@ -107,7 +107,8 @@ The section entitled *wrmap* will be used by tks to substitute human-readable
 names for work request numbers in TKS files it parses. All other sections
 correspond to systems that TKS is able to access.
 
-.. [1] The ini file format is a de facto standard. tks will support all the features of ini files that the perl module Config::Inifiles supports
+.. [1] The ini file format is a de facto standard. tks will support all the
+       features of ini files that the perl module Config::Inifiles supports
 
 The 'wrmap' Section
 ~~~~~~~~~~~~~~~~~~~
@@ -132,8 +133,6 @@ implementing the TKS Backend API, and defaults to 'WRMS'.
 Backends will likely need more configuration. It should be possible for
 backends to store this configuration in the system section as parameters, so
 that users can edit it themselves.
-
-
 
 Running tks
 ^^^^^^^^^^^
