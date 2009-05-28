@@ -429,6 +429,20 @@ sub invoke_editor {
     return scalar(read_file($fh));
 }
 
+sub negative_to_zero {
+    my ($self) = @_;
+
+    my $timesheet = $self->new();
+
+    foreach my $entry ( $self->entries ) {
+        $entry = $entry->clone;
+        $entry->time(0) if $entry->time < 0;
+        $timesheet->addentry($entry);
+    }
+
+    return $timesheet;
+}
+
 sub compact {
     my ($self) = @_;
 
