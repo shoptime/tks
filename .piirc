@@ -4,5 +4,10 @@ use TKS::Backend::WRMSWeb;
 use TKS::File;
 use TKS::Timesheet;
 use TKS::Entry;
+use TKS::Date;
 
-$wrms = TKS::Backend::WRMSWeb->new()
+$wrms = TKS::Backend::WRMSWeb->new();
+$t = TKS::Timesheet->from_string(q{
+2009-12-01
+54665   1.5     Testing TKS submission code (i.e. this isn't real time)
+});
