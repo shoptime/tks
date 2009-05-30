@@ -6,6 +6,7 @@ use Exporter 'import';
 use Config::IniFiles;
 
 our @EXPORT = qw(config);
+our @EXPORT_OK = qw(config_set config_delete);
 
 my $config;
 my $request_map;
@@ -15,6 +16,24 @@ sub config {
 
     return $config->val($section, $key);
 };
+
+sub config_set {
+    my ($section, $key, $value) = @_;
+
+    my $existing_value = config($section, $key);
+
+    if ( not defined $existing_value or $existing_value ne $value ) {
+        $config->newval($section, $key, $value);
+        $config->RewriteConfig;
+    }
+}
+
+sub config_delete {
+    my ($section, $key) = @_;
+
+    $config->delval($section, $key);
+    $config->RewriteConfig;
+}
 
 BEGIN {
     my $file;
