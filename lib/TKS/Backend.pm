@@ -3,7 +3,7 @@ package TKS::Backend;
 use strict;
 use warnings;
 
-use TKS::Config;
+use TKS::Config qw(config config_set config_delete);
 use Term::ReadLine;
 use UNIVERSAL;
 
@@ -14,13 +14,17 @@ sub new {
 
     eval "use $class";
 
+    if ( $@ ) {
+        die "Failed to load backend '$class': $@";
+    }
+
     $self = bless {}, $class;
 
     unless ( UNIVERSAL::isa($self, __PACKAGE__) ) {
         die "Bad backend: " . ( ref $self ) . " isn't a subclass of " . __PACKAGE__;
     }
 
-    $self->{instance} = $instance;
+    $self->{instance} = $instance || 'default';
 
     $self->init();
 
@@ -35,8 +39,12 @@ sub instance_config {
     my ($self, $key) = @_;
 
     return config($self->{instance}, $key);
+}
 
-    #return read_password('Password for "' . $self->instance_config('name') . '" instance: ') if $key eq 'password';
+sub instance_config_set {
+    my ($self, $key, $value) = @_;
+
+    config_set($self->{instance}, $key, $value);
 }
 
 sub read_line {

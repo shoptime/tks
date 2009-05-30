@@ -9,13 +9,39 @@ use XML::LibXML;
 use JSON;
 use POSIX;
 use TKS::Timesheet;
+use URI;
 
 sub init {
     my ($self) = @_;
 
     my $mech = $self->{mech} = WWW::Mechanize->new();
+    $mech->quiet(1);
     $self->{parser} = XML::LibXML->new();
     $self->{parser}->recover(1);
+    $self->{wrms_user_no} = $self->instance_config('wrms_user_no');
+    my $session_id = $self->instance_config('wrms_cookie');
+    if ( $session_id ) {
+        my $uri = URI->new($self->baseurl);
+        $self->{mech}->cookie_jar->set_cookie(0, 'sid', $session_id, '/', $uri->host);
+    }
+}
+
+sub fetch_page {
+    my ($self, $url) = @_;
+
+    my $mech = $self->{mech};
+
+    $mech->get(URI->new_abs($url, $self->baseurl));
+
+    if ( $mech->form_with_fields('username', 'password') ) {
+        $self->_login;
+    }
+}
+
+sub _login {
+    my ($self) = @_;
+
+    my $mech = $self->{mech};
 
     my $username = $self->instance_config('username');
     my $password = $self->instance_config('password');
@@ -30,8 +56,7 @@ sub init {
         die "Missing username and/or password";
     }
 
-    # Get homepage
-    $mech->get($self->baseurl);
+    print STDERR "Attemping login to WRMS as $username\n";
 
     # Check for login form
     unless (
@@ -64,6 +89,14 @@ sub init {
     }
 
     $self->{wrms_user_no} = $1;
+    $self->instance_config_set('wrms_user_no', $self->{wrms_user_no});
+
+    $mech->cookie_jar->scan(sub {
+        my (undef, $key, $value, undef, $domain) = @_;
+        return unless $key eq 'sid';
+        return unless $self->baseurl =~ m{\Q$domain\E};
+        $self->instance_config_set('wrms_cookie', $value);
+    });
 }
 
 sub baseurl {
@@ -78,60 +111,70 @@ sub baseurl {
 }
 
 sub get_timesheet {
-    my ($self, @dates) = @_;
+    my ($self, $dates) = @_;
+
+    $dates = TKS::Date->new($dates);
 
     my ($c_year, $c_month, $c_day) = map { strftime($_, localtime) } qw(%Y %m %d);
 
     my $timesheet = TKS::Timesheet->new();
 
-    foreach my $date ( @dates ) {
-        die "Invalid date '$date'" unless $date =~ m{ \A ( \d\d\d\d ) - ( \d\d ) - ( \d\d ) \z }xms;
-
-        $self->{mech}->get("/form.php?f=timelist&user_no=$self->{wrms_user_no}&uncharged=1&from_date=$date&to_date=$date");
-
-        my $dom = $self->parse_page;
-        my ($table) = grep { $_->findnodes('./tr[1]/*')->size == 13 } $dom->findnodes('//table');
-
-        die "Couldn't find data table" unless $table;
-
-        foreach my $row ( $table->findnodes('./tr') ) {
-            my @data = map { $_->textContent } $row->findnodes('./td');
-            next unless $data[2] and $data[2] =~ m{ \A (\d\d)/(\d\d)/(\d\d\d\d) \z }xms;
-
-            my $entry = {
-                date         => "$3-$2-$1",
-                request      => $data[1],
-                comment      => $data[6],
-                time         => $data[3],
-                needs_review => $data[8],
-            };
-
-            next unless $entry->{date} eq $date;
-
-            unless ( $entry->{time} =~ m{ \A ( [\d.]+ ) \s hours \z }xms ) {
-                die "Can't parse hours from time '$entry->{time}'";
-            }
-            $entry->{time} = $1;
-
-            $entry->{needs_review} = $entry->{needs_review} =~ m{ review }ixms ? 1 : 0;
-
-            $timesheet->addentry(TKS::Entry->new($entry));
-        }
+    unless ( $self->{wrms_user_no} ) {
+        # grab the homepage and log in (to get the wrms user number)
+        $self->fetch_page('');
     }
+
+    $self->fetch_page("form.php?f=timelist&user_no=$self->{wrms_user_no}&uncharged=1&from_date=" . $dates->mindate . "&to_date=" . $dates->maxdate);
+
+    my $dom = $self->parse_page;
+    my ($table) = grep { $_->findnodes('./tr[1]/*')->size == 13 } $dom->findnodes('//table');
+
+    die "Couldn't find data table" unless $table;
+
+    foreach my $row ( $table->findnodes('./tr') ) {
+        my @data = map { $_->textContent } $row->findnodes('./td');
+
+        next unless $data[2] and $data[2] =~ m{ \A (\d\d)/(\d\d)/(\d\d\d\d) \z }xms;
+
+        my $entry = {
+            date         => "$3-$2-$1",
+            request      => $data[1],
+            comment      => $data[6],
+            time         => $data[3],
+            needs_review => $data[8],
+        };
+
+        next unless $dates->contains($entry->{date});
+
+        unless ( $entry->{time} =~ m{ \A ( [\d.]+ ) \s hours \z }xms ) {
+            die "Can't parse hours from time '$entry->{time}'";
+        }
+        $entry->{time} = $1;
+
+        $entry->{needs_review} = $entry->{needs_review} =~ m{ review }ixms ? 1 : 0;
+
+        $timesheet->addentry(TKS::Entry->new($entry));
+    }
+
     return $timesheet;
 }
 
 sub delete_timesheet {
     my ($self, $timesheet) = @_;
 
-    foreach my $entry ( $timesheet->entries ) {
+    my $existing = $self->get_timesheet($timesheet->dates);
+    $existing->subtimesheet($timesheet);
+
+    foreach my $entry ( $existing->compact->negative_to_zero->entries ) {
         my $data = to_json({
             work_on          => $entry->date,
             request_id       => $entry->request,
             work_description => $entry->comment,
-            hours            => 0,
+            hours            => $entry->time,
         });
+
         $self->{mech}->post($self->baseurl . 'api.php/times/record', Content => $data);
+
         # method returns "old" hours
         unless ( $self->{mech}->content =~ m{ \A [\d.]+ \z }xms ) {
             die "Error: " . $self->{mech}->content;
