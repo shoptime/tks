@@ -208,12 +208,13 @@ sub _from_string_fail {
 sub dates {
     my ($self) = @_;
 
-    my %dates;
+    my $dates = TKS::Date->new();
+
     foreach my $entry ( $self->entries ) {
-        $dates{$entry->date}++;
+        $dates->add_datespec($entry->date);
     }
 
-    return keys %dates;
+    return $dates;
 }
 
 sub clone {
@@ -267,12 +268,12 @@ sub time {
 sub filter_date {
     my ($self, $date) = @_;
 
-    die "Invalid date '$date'" unless $date and $date =~ m{ \A \d\d\d\d - \d\d - \d\d \z }xms;
+    $date = TKS::Date->new($date);
 
     my $timesheet = $self->new();
 
     foreach my $entry ( $self->entries ) {
-        next unless $entry->date eq $date;
+        next unless $date->contains($entry->date);
         $timesheet->addentry($entry);
     }
 
