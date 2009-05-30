@@ -7,15 +7,21 @@ use POSIX;
 use List::Util qw(maxstr minstr);
 use List::MoreUtils qw(uniq);
 use Date::Calc qw(Add_Delta_Days Add_Delta_YM Days_in_Month);
+use UNIVERSAL;
 
 sub new {
     my ($self, $datespec) = @_;
+
+    if ( UNIVERSAL::isa($datespec, __PACKAGE__) ) {
+        return $datespec->clone;
+    }
 
     my $class = ref $self || $self;
 
     $self = bless {}, $class;
 
     $self->{dates} = [];
+    $self->{dateshash} = {};
 
     $self->add_datespec($datespec);
 
@@ -40,20 +46,45 @@ sub maxdate {
     return $self->{dates}[-1];
 }
 
+sub contains {
+    my ($self, $tksdate) = @_;
+
+    $tksdate = $self->new($tksdate) unless UNIVERSAL::isa($tksdate, __PACKAGE__);
+
+    foreach my $date ( $tksdate->dates ) {
+        return unless exists $self->{dateshash}{$date};
+    }
+
+    return 1;
+}
+
 sub add_datespec {
     my ($self, $datespec) = @_;
 
     $self->{dates} = [ sort uniq @{$self->{dates}}, $self->parse_datespec($datespec) ];
+    $self->{dateshash} = { map { $_ => 1 } @{$self->{dates}} };
+}
+
+sub clone {
+    my ($self) = @_;
+
+    my $newobj = $self->new();
+
+    $newobj->{dates} = [ @{$self->{dates}} ];
+    $newobj->{dateshash} = { map { $_ => 1 } @{$self->{dates}} };
+
+    return $newobj;
 }
 
 sub parse_datespec {
     my ($self, $datespec) = @_;
 
+    return () unless $datespec;
+
     my @dates;
     my @components = split /\s*,\s*/, $datespec;
 
     foreach my $component ( @components ) {
-        print "Parsing component: $component\n";
         my @range = split /\s*\.\.\s*/, $component;
         if ( @range == 1 ) {
             push @dates, $self->_parse_datecomponent($range[0])
