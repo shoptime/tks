@@ -14,4 +14,19 @@ sub clone {
     return bless { %{$self} }, ref $self;
 };
 
+sub invert_clone {
+    my ($self) = @_;
+
+    $self = bless { %{$self} }, ref $self;
+    $self->{time} = -$self->{time};
+
+    return $self;
+};
+
+sub as_string {
+    my ($self) = @_;
+
+    return $self->request . ': ' . $self->comment . ' (' . $self->time . ')';
+}
+
 1;
