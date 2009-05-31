@@ -10,6 +10,7 @@ use JSON;
 use POSIX;
 use TKS::Timesheet;
 use URI;
+use Term::ProgressBar;
 
 sub init {
     my ($self) = @_;
@@ -159,35 +160,29 @@ sub get_timesheet {
     return $timesheet;
 }
 
-sub delete_timesheet {
-    my ($self, $timesheet) = @_;
-
-    my $existing = $self->get_timesheet($timesheet->dates);
-    $existing->subtimesheet($timesheet);
-
-    foreach my $entry ( $existing->compact->negative_to_zero->entries ) {
-        my $data = to_json({
-            work_on          => $entry->date,
-            request_id       => $entry->request,
-            work_description => $entry->comment,
-            hours            => $entry->time,
-        });
-
-        $self->{mech}->post($self->baseurl . 'api.php/times/record', Content => $data);
-
-        # method returns "old" hours
-        unless ( $self->{mech}->content =~ m{ \A [\d.]+ \z }xms ) {
-            die "Error: " . $self->{mech}->content;
-        }
-    }
-}
-
 sub add_timesheet {
-    my ($self, $timesheet) = @_;
+    my ($self, $timesheet, $show_progress) = @_;
+
+    foreach my $entry ( $timesheet->entries ) {
+        die 'Invalid request "' . $entry->request . '"' unless $self->valid_request($entry->request);
+    }
+
+    if ( $show_progress ) {
+        print STDERR "Fetching existing entries...\n";
+    }
 
     my $existing = $self->get_timesheet($timesheet->dates);
     $existing->addtimesheet($timesheet);
 
+    if ( $show_progress ) {
+        $show_progress = Term::ProgressBar->new({
+            count => scalar($existing->compact->entries),
+            name  => 'Adding timesheets',
+            ETA   => 'linear',
+        });
+    }
+
+    my $count = 0;
     foreach my $entry ( $existing->compact->entries ) {
         my $data = to_json({
             work_on          => $entry->date,
@@ -195,10 +190,17 @@ sub add_timesheet {
             work_description => $entry->comment,
             hours            => $entry->time,
         });
+
+        #print "Post: $data\n";
+        #next;
+
         $self->{mech}->post($self->baseurl . 'api.php/times/record', Content => $data);
         # method returns "old" hours
         unless ( $self->{mech}->content =~ m{ \A [\d.]+ \z }xms ) {
             die "Error: " . $self->{mech}->content;
+        }
+        if ( $show_progress ) {
+            $show_progress->update(++$count);
         }
     }
 }

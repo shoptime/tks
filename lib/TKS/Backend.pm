@@ -74,10 +74,6 @@ sub get_timesheet {
     die "Need to implement get_timesheet";
 }
 
-sub delete_timesheet {
-    die "Need to implement get_timesheet";
-}
-
 sub add_timesheet {
     die "Need to implement get_timesheet";
 }
