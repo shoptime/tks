@@ -17,6 +17,7 @@ use Pod::Usage;
 use Getopt::Long qw(GetOptions);
 use TKS::Backend;
 use TKS::Config;
+use TKS::Date;
 
 my(%opt);
 
@@ -40,24 +41,21 @@ if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit))) > 1) {
 my $backend = TKS::Backend->new($opt{section});
 
 if ( $opt{list} ) {
-    my $timesheet = $backend->get_timesheet($opt{list});
+    my $timesheet = $backend->get_timesheet(TKS::Date->new($opt{list}));
     ts_print($timesheet);
 }
 elsif ( $opt{edit} ) {
-    my $timesheet = $backend->get_timesheet($opt{edit});
-    $timesheet = $timesheet->edit();
+    my $timesheet = $backend->get_timesheet(TKS::Date->new($opt{edit}));
+    my $new_timesheet = $timesheet->edit();
 
-    if ( $timesheet ) {
-        ts_print($timesheet);
+    if ( $new_timesheet ) {
+        my $diff = $timesheet->diff($new_timesheet);
+        $backend->add_timesheet($diff);
+        ts_print($new_timesheet);
     }
     else {
         print "Timesheet wasn't saved, no modifications made\n";
     }
-
-    # TODO confirm?
-
-    # TODO commit
-
 }
 else {
     die "No file specified" unless $opt{filename};
@@ -66,7 +64,10 @@ else {
     $timesheet->backend($backend);
     ts_print($timesheet);
     if ( $opt{commit} ) {
-        # TODO commit
+        my $existing = $backend->get_timesheet($timesheet->dates);
+        my $diff = $existing->diff($timesheet);
+        print STDERR "Committing ...\n";
+        $backend->add_timesheet($diff, 1);
     }
 }
 
