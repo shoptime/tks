@@ -66,8 +66,13 @@ else {
     if ( $opt{commit} ) {
         my $existing = $backend->get_timesheet($timesheet->dates);
         my $diff = $existing->diff($timesheet);
-        print STDERR "Committing ...\n";
-        $backend->add_timesheet($diff, 1);
+        if ( $diff->entries ) {
+            print STDERR "Committing ...\n";
+            $backend->add_timesheet($diff, 1);
+        }
+        else {
+            print STDERR "No changes, nothing to commit\n";
+        }
     }
 }
 

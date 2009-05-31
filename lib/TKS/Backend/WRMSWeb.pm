@@ -203,6 +203,9 @@ sub add_timesheet {
             $show_progress->update(++$count);
         }
     }
+    if ( $show_progress ) {
+        print STDERR "Successfully committed $count changes\n";
+    }
 }
 
 sub valid_request {
