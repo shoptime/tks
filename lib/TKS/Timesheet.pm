@@ -229,6 +229,69 @@ sub clone {
     return $timesheet;
 }
 
+sub invert {
+    my ($self) = @_;
+
+    my $timesheet = $self->new();
+
+    foreach my $entry ( $self->entries ) {
+        $entry = $entry->clone;
+        $entry->time(-$entry->time);
+        $timesheet->addentry($entry);
+    }
+    return $timesheet;
+}
+
+sub diff {
+    my ($self, $timesheet) = @_;
+
+    $self = $self->compact;
+    $timesheet = $timesheet->compact;
+    my $diff = $self->new();
+
+    foreach my $entry ( $self->entries ) {
+        my ($match) = $timesheet->entry_search($entry);
+        if ( $match ) {
+            unless ( $match->time == $entry->time ) {
+                $entry = $entry->clone;
+                $entry->time($match->time - $entry->time);
+                unless ( $entry->time < 1e-10 ) {
+                    $diff->addentry($entry);
+                }
+            }
+        }
+        else {
+            $diff->addentry($entry->invert_clone);
+        }
+    }
+    foreach my $entry ( $timesheet->entries ) {
+        my ($match) = $self->entry_search($entry);
+        unless ( $match ) {
+            $diff->addentry($entry->clone);
+        }
+    }
+
+    return $diff;
+}
+
+sub entry_search {
+    my ($self, $search_entry) = @_;
+
+    my @matches;
+    foreach my $entry ( $self->entries ) {
+        if (
+            $entry->date eq $search_entry->date
+            and $entry->request eq $search_entry->request
+            and $entry->comment eq $search_entry->comment
+            and $entry->needs_review eq $search_entry->needs_review
+        ) {
+            push @matches, $entry->clone;
+        }
+    }
+
+    return @matches;
+}
+
 sub addentry {
     my ($self, $entry) = @_;
 
@@ -246,11 +309,7 @@ sub addtimesheet {
 sub subtimesheet {
     my ($self, $timesheet) = @_;
 
-    foreach my $entry ( $timesheet->entries ) {
-        $entry = $entry->clone;
-        $entry->time( -$entry->time );
-        $self->addentry($entry);
-    }
+    $self->addtimesheet($timesheet->invert);
 }
 
 sub size {
@@ -351,13 +410,14 @@ sub as_string {
     if ( defined $date_total ) {
         $output .= $format_hours->($date_total);
     }
-    $output .= "\n";
 
     if ( $self->time ) {
         $output .= $color ? color('bold blue') : '';
-        $output .= "# Total hours: " . $self->time . "\n\n";
-        $output .= $color ? color('reset') : '';
+        $output .= "\n# Total hours: " . $self->time . "\n";
     }
+
+    $output .= $color ? color('reset') : '';
+    $output .= "\n";
 
     return $output;
 }
