@@ -5,6 +5,7 @@ use TKS::File;
 use TKS::Timesheet;
 use TKS::Entry;
 use TKS::Date;
+use TKS::Config qw(config config_set config_delete);
 
 $wrms = TKS::Backend::WRMSWeb->new();
 $t = TKS::Timesheet->from_string(q{
