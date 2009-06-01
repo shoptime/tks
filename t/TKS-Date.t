@@ -10,7 +10,7 @@ use_ok('TKS::Date');
 
 my @tests = (
     {
-        datespecs => [qw(today tomorrow^1 today..tomorrow^1 today,tomorrow^1)],
+        datespecs => ['today', 'tomorrow^1', 'today..tomorrow^1', 'today,tomorrow^1'],
         expected_count => 1,
         expected_first => strftime('%F', localtime()),
         expected_last => strftime('%F', localtime()),
