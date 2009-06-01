@@ -32,7 +32,7 @@ $opt{filename} = shift;
 $opt{section} ||= 'default';
 $opt{filename} ||= config($opt{section}, 'defaultfile');
 
-$opt{filename} =~ s{ \A ~ / }{"$ENV{HOME}/"}xmse;
+$opt{filename} =~ s{ \A ~ / }{"$ENV{HOME}/"}xmse if defined $opt{filename};
 
 if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit))) > 1) {
     pod2usage(-exitval => 1, -message => "Options commit, list, and edit are mutually exclusive\n", -verbose => 0);
