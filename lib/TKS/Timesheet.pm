@@ -451,7 +451,7 @@ sub edit {
 sub invoke_editor {
     my ($self, $string) = @_;
 
-    my $editor = 'vim';
+    my $editor = $ENV{EDITOR} || $ENV{VISUAL} || 'vi';
 
     File::Temp->safe_level(File::Temp::HIGH);
     my ( $fh, $filename ) = tempfile( UNLINK => 1, SUFFIX => '.tks' );
