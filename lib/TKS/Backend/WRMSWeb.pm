@@ -33,7 +33,22 @@ sub fetch_page {
 
     my $mech = $self->{mech};
 
-    $mech->get(URI->new_abs($url, $self->baseurl));
+    eval { $mech->get(URI->new_abs($url, $self->baseurl)); };
+
+    if ( $mech->status == 403 ) {
+        $mech->get($self->baseurl);
+        if ( $mech->form_with_fields('username', 'password') ) {
+            $self->_login;
+            $mech->get(URI->new_abs($url, $self->baseurl));
+        }
+        else {
+            die "Couldn't find login form";
+        }
+    }
+
+    unless ( $mech->status == 200 ) {
+        die "Got non-200 (" . $mech->status . ") status from mechanize: $@";
+    }
 
     if ( $mech->form_with_fields('username', 'password') ) {
         $self->_login;
