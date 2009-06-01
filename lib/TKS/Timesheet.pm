@@ -255,7 +255,7 @@ sub diff {
             unless ( $match->time == $entry->time ) {
                 $entry = $entry->clone;
                 $entry->time($match->time - $entry->time);
-                unless ( $entry->time < 1e-10 ) {
+                unless ( $entry->time < 1e-8 ) {
                     $diff->addentry($entry);
                 }
             }
