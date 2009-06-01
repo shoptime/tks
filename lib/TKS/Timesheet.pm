@@ -159,7 +159,7 @@ sub _from_string_parse_line {
         unless ( $result->{date} ) {
             $self->_from_string_fail('Encountered timesheet entry before a date was specified');
         }
-        unless ( $result->{time} or $result->{incomplete} ) {
+        unless ( defined $result->{time} or $result->{incomplete} ) {
             $self->_from_string_fail('Failed to calculate time');
         }
         return $result;
