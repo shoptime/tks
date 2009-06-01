@@ -1,0 +1,9 @@
+'failed to parse line': doesn't understand lines with no wr smartly - should be able to say what is wrong with the line?
+help people with 'wrmap' in config file - rename to 'requestmap'
+even though it somehow knows that some aliases are invalid, it still insists on going to the network when committing before erroring out
+use .tksinfo file to store data that tks needs to write back
+rounding error when printing timesheets: tks -l lastweek for nigel (lastweek being the last week of may)
+need license/copyright info in files
+syntax highlighting needs testing (should be same as tks -l I guess)
+debian packaging needs testing
+need more test cases!
