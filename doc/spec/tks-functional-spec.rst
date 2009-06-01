@@ -189,7 +189,8 @@ either one *datetoken*, or two datetokens separated by ``..``.
 
 Datetokens are specified either in a standard date format, or are mnemonics
 representing dates. The mnemonic forms can be modified with ``^`` notation to
-retrieve previous dates or ranges of dates as appropriate.
+retrieve previous dates or ranges of dates as appropriate. Mnemonics are case
+insensitive.
 
 ==========   ============================================================================================== ========== ==========================
 Datetoken    Description                                                                                    Example    Mnemonic meaning/examples
@@ -201,12 +202,15 @@ DD/MM/YY     The day specified. The year is considered to be in the 21st century
 day          The current day                                                                                           Subtract one day. day^ = yesterday
 today        The current day                                                                                           Same as for 'day'
 yesterday    The day before today                                                                                      Subtract one day. yesterday^ = the day before yesterday
+tomorrow     The day after today                                                                                       Subtract one day. tomorrow^ = today
 week         The seven days beginnning from Monday and ending on Sunday in which the current date resides              Subtract 7 days from each day in the list. week^ = lastweek
 thisweek     Synonym for week                                                                                          Same as for 'week'
 lastweek     Synonym for week^                                                                                         Same as for 'week'
+nextweek     The week after this week (Monday to Sunday)                                                               Same as for 'week'. nextweek^ = week = thisweek
 month                                                                                                                  Replace the list of dates with the list of dates in the previous month. If thismonth is July, thismonth^ is June.
 thismonth    The calendar month enclosing the current date                                                             Same as for 'month'
 lastmonth    Synonym for thismonth^                                                                                    Same as for 'month'
+nextmonth    The calendar month after the month enclosing the current date                                             Same as for 'month'. nextmonth^ = month = thismonth
 ==========   ============================================================================================== ========== ==========================
 
 ``^`` notation means suffixing a datetoken with either one or more ``^``
