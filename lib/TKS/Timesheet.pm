@@ -454,7 +454,7 @@ sub invoke_editor {
     my $editor = 'vim';
 
     File::Temp->safe_level(File::Temp::HIGH);
-    my ( $fh, $filename ) = tempfile( UNLINK => 1 );
+    my ( $fh, $filename ) = tempfile( UNLINK => 1, SUFFIX => '.tks' );
 
     # since File::Temp returns both, check both
     unless ( $fh and $filename ) {
