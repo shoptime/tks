@@ -11,6 +11,7 @@ use POSIX;
 use TKS::Timesheet;
 use URI;
 use Term::ProgressBar;
+use POSIX;
 
 sub init {
     my ($self) = @_;
@@ -159,12 +160,10 @@ sub user_search {
     return $matches[0]->{user_no} if @matches;
 }
 
-sub get_timesheet {
+sub get_timesheet_scrape {
     my ($self, $dates, $user) = @_;
 
     $dates = TKS::Date->new($dates);
-
-    my ($c_year, $c_month, $c_day) = map { strftime($_, localtime) } qw(%Y %m %d);
 
     my $timesheet = TKS::Timesheet->new();
 
@@ -177,6 +176,7 @@ sub get_timesheet {
     unless ( $user ) {
         # grab the homepage and log in (to get the wrms user number)
         $self->fetch_page('');
+        $user = $self->{wrms_user_no};
     }
 
     $self->fetch_page("form.php?f=timelist&user_no=$user&uncharged=1&from_date=" . $dates->mindate . "&to_date=" . $dates->maxdate);
@@ -209,6 +209,50 @@ sub get_timesheet {
         $entry->{needs_review} = $entry->{needs_review} =~ m{ review }ixms ? 1 : 0;
 
         $timesheet->addentry(TKS::Entry->new($entry));
+    }
+
+    return $timesheet;
+}
+
+sub get_timesheet {
+    my ($self, $dates, $user) = @_;
+
+    if ( $user ) {
+        return $self->get_timesheet_scrape($dates, $user);
+    }
+
+    $dates = TKS::Date->new($dates);
+
+    my $timesheet = TKS::Timesheet->new();
+
+    my %dates_to_fetch;
+    foreach my $date ( $dates->dates ) {
+        die "Couldn't parse date '$date'" unless $date =~ m{ \A (\d\d\d\d)-(\d\d)-(\d\d) \z }xms;
+        my $week_start = mktime(0, 0, 0, $3, $2 - 1, $1 - 1900);
+        $week_start = sprintf('%04d-%02d-%02d', Date::Calc::Add_Delta_Days($1, $2, $3, -strftime('%u',localtime($week_start))+1));
+        push @{$dates_to_fetch{$week_start}}, $date;
+    }
+
+    foreach my $date ( keys %dates_to_fetch ) {
+        $self->fetch_page('api.php/times/week/' . $date);
+        my $entries = eval { from_json($self->{mech}->content); };
+        if ( $@ ) {
+            die "Couldn't parse api response: $@";
+        }
+        unless ( $entries and ref $entries eq 'ARRAY' ) {
+            die "Unexpected response from api";
+        }
+        foreach my $entry ( @{$entries} ) {
+            next unless grep { $entry->{date} eq $_ } @{$dates_to_fetch{$date}};
+
+            $timesheet->addentry(TKS::Entry->new(
+                date         => $entry->{date},
+                request      => $entry->{request_id},
+                comment      => $entry->{work_description},
+                time         => $entry->{hours},
+                needs_review => 0, # TODO
+            ));
+        }
     }
 
     return $timesheet;
