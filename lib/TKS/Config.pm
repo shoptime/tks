@@ -52,7 +52,7 @@ BEGIN {
         close FH;
     }
 
-    $config = Config::IniFiles->new( -file => $file, -allowempty => 1 );
+    $config = Config::IniFiles->new( -file => $file );
 
     foreach my $key ( $config->Parameters('requestmap') ) {
         my $value = $config->val('requestmap', $key);
