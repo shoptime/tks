@@ -7,4 +7,4 @@ plan tests => 2;
 
 use_ok('TKS::Timesheet');
 my $ts = TKS::Timesheet->from_file('t/rounding.tks');
-like($ts->as_string, qr/Total hours: 9\.67/, 'No rounding error present');
+like($ts->as_string, qr/Total hours: 9\.67\b/, 'No rounding error present');
