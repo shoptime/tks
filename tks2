@@ -21,7 +21,7 @@ use TKS::Date;
 
 my(%opt);
 
-if(!GetOptions(\%opt, 'help|?', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color')) {
+if(!GetOptions(\%opt, 'help|?', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s')) {
     pod2usage(-exitval => 1,  -verbose => 0);
 }
 
@@ -41,7 +41,7 @@ if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit))) > 1) {
 my $backend = TKS::Backend->new($opt{section});
 
 if ( $opt{list} ) {
-    my $timesheet = $backend->get_timesheet(TKS::Date->new($opt{list}));
+    my $timesheet = $backend->get_timesheet(TKS::Date->new($opt{list}), $opt{user});
     ts_print($timesheet);
 }
 elsif ( $opt{edit} ) {

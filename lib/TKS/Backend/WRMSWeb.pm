@@ -111,8 +111,56 @@ sub baseurl {
     return $site;
 }
 
+sub user_search {
+    my ($self, $search) = @_;
+
+    unless ( $self->{user_cache} ) {
+        $self->fetch_page('usrsearch.php?org_code=37');
+
+        my $dom = $self->parse_page;
+
+        my ($table) = grep { $_->findnodes('./tr[1]/*')->size == 5 } $dom->findnodes('//table');
+        die "Couldn't find user list table" unless $table;
+
+        my @users;
+        foreach my $row ( $table->findnodes('./tr') ) {
+            my @data = map { $_->textContent } $row->findnodes('./td');
+
+            next unless $data[3] and $data[3] =~ m{ (\d\d)/(\d\d)/(\d\d\d\d) }xms;
+
+            next unless $row->findvalue('./td[1]//a/@href') =~ m{ \b user_no = (\d+) \b }xms;
+
+            push @users, {
+                user_no   => $1,
+                username => $data[0],
+                fullname => $data[1],
+                email    => $data[2],
+            };
+        }
+        $self->{user_cache} = \@users;
+    }
+
+    my @matches = grep { $_->{username} eq $search } @{$self->{user_cache}};
+
+    unless ( @matches ) {
+        @matches = grep {
+            $_->{username} =~ m{ \Q$search\E }ixms
+            or $_->{fullname} =~ m{ \Q$search\E }ixms
+            or $_->{email} =~ m{ \Q$search\E }ixms
+        } @{$self->{user_cache}};
+    }
+
+    die "No matches found for search '$search'" unless @matches;
+    die "Multiple matches found for search '$search'\n"
+        . join("\n", map { "$_->{username} - $_->{fullname} ($_->{email})" } @matches)
+        . "\n" unless @matches == 1;
+
+    print STDERR "Matched user: $matches[0]->{username} - $matches[0]->{fullname} <$matches[0]->{email}>\n";
+    return $matches[0]->{user_no} if @matches;
+}
+
 sub get_timesheet {
-    my ($self, $dates) = @_;
+    my ($self, $dates, $user) = @_;
 
     $dates = TKS::Date->new($dates);
 
@@ -120,12 +168,18 @@ sub get_timesheet {
 
     my $timesheet = TKS::Timesheet->new();
 
-    unless ( $self->{wrms_user_no} ) {
+    if ( $user and $user !~ m{ \A \d+ \z }xms ) {
+        $user = $self->user_search($user);
+    }
+
+    $user ||= $self->{wrms_user_no};
+
+    unless ( $user ) {
         # grab the homepage and log in (to get the wrms user number)
         $self->fetch_page('');
     }
 
-    $self->fetch_page("form.php?f=timelist&user_no=$self->{wrms_user_no}&uncharged=1&from_date=" . $dates->mindate . "&to_date=" . $dates->maxdate);
+    $self->fetch_page("form.php?f=timelist&user_no=$user&uncharged=1&from_date=" . $dates->mindate . "&to_date=" . $dates->maxdate);
 
     my $dom = $self->parse_page;
     my ($table) = grep { $_->findnodes('./tr[1]/*')->size == 13 } $dom->findnodes('//table');
