@@ -413,7 +413,7 @@ sub as_string {
 
     if ( $self->time ) {
         $output .= $color ? color('bold blue') : '';
-        $output .= "\n# Total hours: " . $self->time . "\n";
+        $output .= "\n# Total hours: " . sprintf('%.2f', $self->time) . "\n";
     }
 
     $output .= $color ? color('reset') : '';
