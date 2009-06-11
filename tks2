@@ -18,10 +18,11 @@ use Getopt::Long qw(GetOptions);
 use TKS::Backend;
 use TKS::Config;
 use TKS::Date;
+use Term::ANSIColor;
 
 my(%opt);
 
-if(!GetOptions(\%opt, 'help|?', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s')) {
+if(!GetOptions(\%opt, 'help|?', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s')) {
     pod2usage(-exitval => 1,  -verbose => 0);
 }
 
@@ -61,6 +62,14 @@ else {
     die "No file specified" unless $opt{filename};
     die "File $opt{filename} not readable" unless -r $opt{filename};
     my $timesheet = TKS::Timesheet->from_file($opt{filename});
+    my $filter_warning;
+
+    if ( $opt{filter} ) {
+        $filter_warning = $timesheet->time;
+        $timesheet = $timesheet->filter_date($opt{filter});
+        $filter_warning -= $timesheet->time;
+    }
+
     $timesheet->backend($backend);
     ts_print($timesheet);
     if ( $opt{commit} ) {
@@ -73,6 +82,22 @@ else {
         else {
             print STDERR "No changes, nothing to commit\n";
         }
+    }
+    if ( $filter_warning ) {
+        my $color_on = ( -t STDOUT and not $opt{'no-color'} );
+        printf
+            "\n%swarning:%s %0.2f hours in your file %s%s%s fell outside the datespec %s%s%s and were not %s\n\n",
+            $color_on ? color('bold red') : '',
+            $color_on ? color('reset') : '',
+            $filter_warning,
+            $color_on ? color('bold blue') : '',
+            $opt{filename},
+            $color_on ? color('reset') : '',
+            $color_on ? color('bold blue') : '',
+            $opt{filter},
+            $color_on ? color('reset') : '',
+            $opt{commit} ? 'committed' : 'displayed',
+        ;
     }
 }
 
@@ -102,7 +127,7 @@ Time keeping sucks. TKS makes it suck less.
 
 =head1 SYNOPSIS
 
-  tks [options] [-s <section>] <file> 
+  tks [options] [-s <section>] [<file>]
            tks --help
            tks --version
 
@@ -117,6 +142,10 @@ Time keeping sucks. TKS makes it suck less.
 
         -c                          Write data to the backend (by default just
                                     prints what _would_ happen)
+        -f <datespec>               Ignores all entries in the provided file
+                                    that fall outside the given datespec (a
+                                    warning will be printed if there are
+                                    entries that fall outside this range)
 
     Options (without a file name):
 
