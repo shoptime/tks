@@ -396,9 +396,9 @@ sub as_string {
             $request_color = 'bold red';
         }
         $output .= sprintf(
-            "%s%-10s %s%5.2f    %s%s%s%s\n",
+            "%s%-12s %s%5.2f    %s%s%s%s\n",
             $color ? color($request_color) : '',
-            $entry->request,
+            config('reverserequestmap', $entry->request) || $entry->request,
             $color ? color('reset') . color('green') : '',
             $entry->time,
             $color ? color('red') : '',

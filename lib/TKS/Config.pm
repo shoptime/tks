@@ -9,10 +9,14 @@ our @EXPORT = qw(config);
 our @EXPORT_OK = qw(config_set config_delete);
 
 my $config;
-my $request_map;
+my $reverse_request_map;
 
 sub config {
     my ($section, $key) = @_;
+
+    return unless $section;
+
+    return $reverse_request_map->{$key} if $section eq 'reverserequestmap';
 
     return $config->val($section, $key);
 };
@@ -59,6 +63,7 @@ BEGIN {
         if ( ref $value or $value =~ /\n/ ) {
             die "[requestmap] entry '$key' has multiple mappings in $file\n";
         }
+        $reverse_request_map->{$value} = $key;
     }
 };
 
