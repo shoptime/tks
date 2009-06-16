@@ -487,7 +487,7 @@ sub invoke_editor {
         die "could not seek on temp file: errno=$!";
     }
 
-    return scalar(read_file($fh));
+    return scalar(read_file($filename));
 }
 
 sub negative_to_zero {
