@@ -7,3 +7,6 @@ need license/copyright info in files
 syntax highlighting needs testing (should be same as tks -l I guess)
 debian packaging needs testing
 need more test cases!
+If -l and a filename passed, tks should crash horribly
+Outputting times doesn't have the totals lined up under the columns
+Times are submitted to great precision, don't need that
