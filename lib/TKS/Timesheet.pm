@@ -368,7 +368,7 @@ sub as_string {
     my $format_hours = sub {
         my ($date_total) = @_;
         return sprintf(
-            "%s#          %5.2f    total hours%s\n",
+            "%s#            %5.2f    total hours%s\n",
             $color ? color('bold blue') : '',
             $date_total,
             $color ? color('reset') : '',
