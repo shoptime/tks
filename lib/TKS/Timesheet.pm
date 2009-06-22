@@ -168,7 +168,27 @@ sub _from_string_parse_line {
     # Skip "blank" lines
     return if $line =~ m{ \A \s* (?: \# .* )? \z }xms;
 
-    $self->_from_string_fail('Failed to parse line');
+    # Detect "common" errors
+    my $error;
+
+    unless ( $line =~ m{ \A ( \d+ | [a-zA-Z0-9_-]+ ) }xms ) {
+        $error ||= 'All lines need to start with a request or an alias';
+    }
+
+    if ( $line =~ m{
+            \A
+            ( \d+ | [a-zA-Z0-9_-]+ ) \s+ # Work request number OR alias
+            ( \d\d?:?\d\d \- ) \s+       # Time specified in 24 hour time
+            ( \[review\] )?          \s* # Review flag
+            ( \S .* )                    # Work description
+            \z
+        }xms ) {
+        $error ||= 'Missing end time for time range';
+    }
+
+    $error ||= 'Failed to parse line';
+
+    $self->_from_string_fail("$error\n$line");
 }
 
 sub _from_string_timediff {
