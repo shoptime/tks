@@ -1,8 +1,9 @@
+Things to fix before release:
+
+- debian packaging needs testing (dependencies, upgrade from old tks package)
 - help people with 'wrmap' in config file - rename to 'requestmap'
 - need license/copyright info in files
-- syntax highlighting needs testing (should be same as tks -l I guess)
-- debian packaging needs testing
-- need more test cases!
+- fix WRMS
 
 Bugs that have been resolved (I think)
 
