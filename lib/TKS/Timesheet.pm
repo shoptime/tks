@@ -532,18 +532,20 @@ sub compact {
     my $entries = {};
 
     foreach my $entry ( $self->entries ) {
-        if ( exists $entries->{$entry->date}{$entry->request}{$entry->comment} ) {
-            $entries->{$entry->date}{$entry->request}{$entry->comment}->time($entries->{$entry->date}{$entry->request}{$entry->comment}->time + $entry->time);
+        if ( exists $entries->{$entry->date}{$entry->request}{$entry->comment}{$entry->needs_review} ) {
+            $entries->{$entry->date}{$entry->request}{$entry->comment}{$entry->needs_review}->time($entries->{$entry->date}{$entry->request}{$entry->comment}{$entry->needs_review}->time + $entry->time);
         }
         else {
-            $entries->{$entry->date}{$entry->request}{$entry->comment} = $entry->clone;
+            $entries->{$entry->date}{$entry->request}{$entry->comment}{$entry->needs_review} = $entry->clone;
         }
     }
 
     foreach my $date ( keys %{$entries} ) {
         foreach my $request ( keys %{$entries->{$date}} ) {
             foreach my $comment ( keys %{$entries->{$date}{$request}} ) {
-                $timesheet->addentry($entries->{$date}{$request}{$comment});
+                foreach my $needs_review ( keys %{$entries->{$date}{$request}{$comment}} ) {
+                    $timesheet->addentry($entries->{$date}{$request}{$comment}{$needs_review});
+                }
             }
         }
     }
