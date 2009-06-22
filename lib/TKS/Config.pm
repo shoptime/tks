@@ -4,12 +4,16 @@ use strict;
 use warnings;
 use Exporter 'import';
 use Config::IniFiles;
+use File::Slurp;
+use JSON qw(encode_json decode_json);
 
 our @EXPORT = qw(config);
 our @EXPORT_OK = qw(config_set config_delete);
 
 my $config;
+my $config_store;
 my $reverse_request_map;
+my $store_filename;
 
 sub config {
     my ($section, $key) = @_;
@@ -18,7 +22,7 @@ sub config {
 
     return $reverse_request_map->{$key} if $section eq 'reverserequestmap';
 
-    return $config->val($section, $key);
+    return $config_store->{$section}{$key} || $config->val($section, $key);
 };
 
 sub config_set {
@@ -27,19 +31,25 @@ sub config_set {
     my $existing_value = config($section, $key);
 
     if ( not defined $existing_value or $existing_value ne $value ) {
-        $config->newval($section, $key, $value);
-        $config->RewriteConfig;
+        $config_store->{$section}{$key} = $value;
+        write_store();
     }
 }
 
 sub config_delete {
     my ($section, $key) = @_;
 
-    $config->delval($section, $key);
-    $config->RewriteConfig;
+    delete $config_store->{$section}{$key};
+    write_store();
+}
+
+sub write_store {
+    write_file($store_filename, encode_json($config_store));
 }
 
 BEGIN {
+    $store_filename = "$ENV{HOME}/.tksinfo";
+
     my $file;
     foreach my $potential_file ( qw( .rc/tks .tksrc ) ) {
         if ( -r "$ENV{HOME}/$potential_file" ) {
@@ -64,6 +74,11 @@ BEGIN {
             die "[requestmap] entry '$key' has multiple mappings in $file\n";
         }
         $reverse_request_map->{$value} = $key;
+    }
+
+    $config_store = {};
+    if ( -f $store_filename ) {
+        $config_store = decode_json(read_file($store_filename));
     }
 };
 
