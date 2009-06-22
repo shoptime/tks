@@ -1,12 +1,15 @@
-'failed to parse line': doesn't understand lines with no wr smartly - should be able to say what is wrong with the line?
-help people with 'wrmap' in config file - rename to 'requestmap'
-even though it somehow knows that some aliases are invalid, it still insists on going to the network when committing before erroring out
-use .tksinfo file to store data that tks needs to write back
-rounding error when printing timesheets: tks -l lastweek for nigel (lastweek being the last week of may)
-need license/copyright info in files
-syntax highlighting needs testing (should be same as tks -l I guess)
-debian packaging needs testing
-need more test cases!
-If -l and a filename passed, tks should crash horribly
-Outputting times doesn't have the totals lined up under the columns
-Times are submitted to great precision, don't need that
+- 'failed to parse line': doesn't understand lines with no wr smartly - should be able to say what is wrong with the line?
+- help people with 'wrmap' in config file - rename to 'requestmap'
+- need license/copyright info in files
+- syntax highlighting needs testing (should be same as tks -l I guess)
+- debian packaging needs testing
+- need more test cases!
+- If -l and a filename passed, tks should crash horribly
+
+Bugs that have been resolved (I think)
+
+- f60add9: use .tksinfo file to store data that tks needs to write back
+- bafa356: Outputting times doesn't have the totals lined up under the columns
+- fcd42a8: rounding error when submitting timesheets: tks -l lastweek for nigel (lastweek being the last week of may) (2009-05-25..2009-05-31)
+- duplicate of above: Times are submitted to great precision, don't need that
+- Even though it somehow knows that some aliases are invalid, it still insists on going to the network when committing before erroring out
