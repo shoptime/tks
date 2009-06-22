@@ -265,7 +265,7 @@ sub get_timesheet {
                 request      => $entry->{request_id},
                 comment      => $entry->{work_description},
                 time         => $entry->{hours},
-                needs_review => 0, # TODO
+                needs_review => $entry->{needs_review} ? 1 : 0,
             ));
         }
     }
@@ -302,6 +302,7 @@ sub add_timesheet {
             request_id       => $entry->request,
             work_description => $entry->comment,
             hours            => sprintf('%.2f', $entry->time),
+            needs_review     => $entry->needs_review,
         });
 
         #print "Post: $data\n";
