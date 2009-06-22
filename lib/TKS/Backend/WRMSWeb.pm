@@ -301,7 +301,7 @@ sub add_timesheet {
             work_on          => $entry->date,
             request_id       => $entry->request,
             work_description => $entry->comment,
-            hours            => $entry->time,
+            hours            => sprintf('%.2f', $entry->time),
         });
 
         #print "Post: $data\n";
