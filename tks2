@@ -33,19 +33,27 @@ $opt{filename} = shift;
 $opt{section} ||= 'default';
 $opt{filename} ||= config($opt{section}, 'defaultfile');
 
-$opt{filename} =~ s{ \A ~ / }{"$ENV{HOME}/"}xmse if defined $opt{filename};
 
 if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit))) > 1) {
     pod2usage(-exitval => 1, -message => "Options commit, list, and edit are mutually exclusive\n", -verbose => 0);
 }
 
+my $filename = $opt{filename} || config($opt{section}, 'defaultfile');
+$filename =~ s{ \A ~ / }{"$ENV{HOME}/"}xmse if defined $filename;
+
 my $backend = TKS::Backend->new($opt{section});
 
 if ( $opt{list} ) {
+    if ( $opt{filename} ) {
+        pod2usage(-verbose => 0, -exitval => 1, -message => "using --list with a filename is not supported");
+    }
     my $timesheet = $backend->get_timesheet(TKS::Date->new($opt{list}), $opt{user});
     ts_print($timesheet);
 }
 elsif ( $opt{edit} ) {
+    if ( $opt{filename} ) {
+        pod2usage(-verbose => 0, -exitval => 1, -message => "using --list with a filename is not supported");
+    }
     my $timesheet = $backend->get_timesheet(TKS::Date->new($opt{edit}));
     my $new_timesheet = $timesheet->edit();
 
@@ -59,9 +67,9 @@ elsif ( $opt{edit} ) {
     }
 }
 else {
-    die "No file specified" unless $opt{filename};
-    die "File $opt{filename} not readable" unless -r $opt{filename};
-    my $timesheet = TKS::Timesheet->from_file($opt{filename});
+    die "No file specified" unless $filename;
+    die "File $filename not readable" unless -r $filename;
+    my $timesheet = TKS::Timesheet->from_file($filename);
     my $filter_warning;
 
     if ( $opt{filter} ) {
@@ -91,7 +99,7 @@ else {
             $color_on ? color('reset') : '',
             $filter_warning,
             $color_on ? color('bold blue') : '',
-            $opt{filename},
+            $filename,
             $color_on ? color('reset') : '',
             $color_on ? color('bold blue') : '',
             $opt{filter},
