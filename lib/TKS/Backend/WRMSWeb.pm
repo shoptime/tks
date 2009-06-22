@@ -296,7 +296,7 @@ sub add_timesheet {
     }
 
     my $count = 0;
-    foreach my $entry ( $existing->compact->entries ) {
+    foreach my $entry ( sort { $a->time <=> $b->time } $existing->compact->entries ) {
         my $data = to_json({
             work_on          => $entry->date,
             request_id       => $entry->request,
