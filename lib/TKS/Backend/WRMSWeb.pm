@@ -311,7 +311,7 @@ sub add_timesheet {
         $self->{mech}->post($self->baseurl . 'api.php/times/record', Content => $data);
         # method returns "old" hours
         unless ( $self->{mech}->content =~ m{ \A [\d.]+ \z }xms ) {
-            die "Error: " . $self->{mech}->content;
+            die "Error: '" . $self->{mech}->content . "'";
         }
         if ( $show_progress ) {
             $show_progress->update(++$count);
