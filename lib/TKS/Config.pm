@@ -1,3 +1,6 @@
+# Copyright (C) 2009 Catalyst IT Ltd (http://www.catalyst.net.nz)
+#
+# This file is distributed under the same terms as tks itself.
 package TKS::Config;
 
 use strict;
