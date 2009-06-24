@@ -51,25 +51,23 @@ sub write_store {
 }
 
 BEGIN {
-    $store_filename = "$ENV{HOME}/.tksinfo";
+    $store_filename = "$ENV{HOME}/.cache/tksinfo";
+    mkdir "$ENV{HOME}/.cache" unless -d "$ENV{HOME}/.cache";
 
     my $file;
-    foreach my $potential_file ( qw( .rc/tks .tksrc ) ) {
+    foreach my $potential_file ( qw( .config/tks .tksrc ) ) {
         if ( -r "$ENV{HOME}/$potential_file" ) {
             $file = "$ENV{HOME}/$potential_file";
             last;
         }
     }
-    $file ||= "$ENV{HOME}/.rc/tks";
 
-    mkdir "$ENV{HOME}/.rc" if $file eq "$ENV{HOME}/.rc/tks" and not -d "$ENV{HOME}/.rc";
-
-    unless ( -e $file ) {
-        open FH, '>', $file;
-        close FH;
+    if ( $file ) {
+        $config = Config::IniFiles->new( -file => $file );
     }
-
-    $config = Config::IniFiles->new( -file => $file );
+    else {
+        $config = Config::IniFiles->new();
+    }
 
     foreach my $key ( $config->Parameters('requestmap') ) {
         my $value = $config->val('requestmap', $key);
