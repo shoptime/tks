@@ -1,0 +1,14 @@
+use lib 'lib/';
+use TKS::Backend;
+use TKS::Backend::WRMSWeb;
+use TKS::File;
+use TKS::Timesheet;
+use TKS::Entry;
+use TKS::Date;
+use TKS::Config qw(config config_set config_delete);
+
+$wrms = TKS::Backend::WRMSWeb->new();
+$t = TKS::Timesheet->from_string(q{
+2009-12-01
+54665   1.5     Testing TKS submission code (i.e. this isn't real time)
+});
