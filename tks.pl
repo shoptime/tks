@@ -183,7 +183,46 @@ Time keeping sucks. TKS makes it suck less.
         tks -l lastweek,today     # Output all time recorded in the default
                                   # system from last week and today
 
-=cut
+=head1 DATESPECS
 
+Some command line arguments take a 'datespec' as their value. Datespecs
+represent a list of one or more dates. Some examples:
+
+    # this exact date
+    2009/05/25
+    # whatever date 'yesterday' was
+    yesterday
+    # All days from the 25th of May to the 3rd of June inclusive, and the 1st of August
+    2009-05-25..2009-06-03,2009-08-01
+    # From the first day of last month until the last day of last week, and today
+    lastmonth..lastweek,today
+
+The examples should give you a feel for the allowed syntax, the following is a
+more thorough description.
+
+A datespec itself is a list of one or more *dateparts*, separated by commas. A
+datepart can represent just one date, or a list of dates. A datepart is either
+one *datetoken*, or two datetokens separated by ``..``.
+
+Datetokens are specified either in a standard date format, or are mnemonics
+representing dates. The mnemonic forms can be modified with ``^`` notation to
+retrieve previous dates or ranges of dates as appropriate. Mnemonics are case
+insensitive.
+
+As an example, for the datespec 2009-05-25..2009-06-03,2009-08-01,today^:
+
+- There are three dateparts: the date range at the start, the first of August
+  in the middle and the mnemonic at the end
+- The first datepart is a range, from the first date to the second, inclusive
+- The second datepart is exactly that date
+- The third datepart represents 'yesterday' (the mnemonic 'yesterday' works
+  too)
+
+=head1 GETTING STARTED
+
+Reading this manpage and simply running tks is a great start. You may also be
+interested in the manpage for the "tksrc" file: man tksrc
+
+=cut
 
 
