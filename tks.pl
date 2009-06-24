@@ -1,7 +1,7 @@
-#!/usr/bin/env perl
-#
-# TKS: Timekeeping sucks. TKS makes it suck less.
-# Copyright (C) 2008 Catalyst IT Ltd (http://www.catalyst.net.nz)
+#!/usr/bin/perl
+# tks: Time keeping sucks. TKS makes it suck less.
+# Author: Martyn Smith
+# Copyright (C) 2009 Catalyst IT Ltd (http://www.catalyst.net.nz)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,262 +15,175 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 use strict;
 use warnings;
-use FindBin;
-use lib $FindBin::Bin . '/lib';
-use Getopt::Declare;
-use Config::IniFiles;
-use File::Slurp;
-use List::Util qw(sum);
-use Data::Dumper;
-use WRMS;
 
-my %config;
-tie %config, 'Config::IniFiles', ( -file => $ENV{HOME} . '/.tksrc' );
+use Pod::Usage;
+use Getopt::Long qw(GetOptions);
+use TKS::Backend;
+use TKS::Config;
+use TKS::Date;
+use Term::ANSIColor;
 
-my $args = Getopt::Declare->new(q(
-    [strict]
-    -c                     	Write data to WRMS (by default just prints what _would_ happen)
-    -v                  	Verbose mode; describe the parsing of the timekeeping file
-    <file>              	File to process [required]
-));
+my(%opt);
 
-die unless defined $args;
-my $VERBOSE = $args->{'-v'};
+if(!GetOptions(\%opt, 'help|?', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s')) {
+    pod2usage(-exitval => 1,  -verbose => 0);
+}
 
-my $tkdata = load_timesheet_file($args->{'<file>'});
-#print Dumper($tkdata);
+pod2usage(-exitstatus => 0, -verbose => 1) if $opt{help};
 
-# connect to wrms
-my $wrms    = WRMS->new({
-    username => $config{default}{username},
-    password => $config{default}{password},
-    site     => $config{default}{site},
-    login    => 1,
-}) if $args->{'-c'};
+$opt{filename} = shift;
 
-# map of textual representations for WRs
-my $wrmap = $config{'wrmap'};
+$opt{section} ||= 'default';
+$opt{filename} ||= config($opt{section}, 'defaultfile');
 
-# if the wr is in the map, substitute
-foreach my $date ( keys %{$tkdata} ) {
-    foreach my $entry ( @{$tkdata->{$date}} ) {
-        $entry->{wr} = $wrmap->{$entry->{wr}} if exists $wrmap->{$entry->{wr}};
-        unless ( $entry->{wr} =~ m{ \A \d+ \z }xms ) {
-            warn "Invalid WR '$entry->{wr}'\n";
-            # TODO: perhaps interactively add these?
-            $entry = undef;
-        }
+
+if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit))) > 1) {
+    pod2usage(-exitval => 1, -message => "Options commit, list, and edit are mutually exclusive\n", -verbose => 0);
+}
+
+my $filename = $opt{filename} || config($opt{section}, 'defaultfile');
+$filename =~ s{ \A ~ / }{"$ENV{HOME}/"}xmse if defined $filename;
+
+my $backend = TKS::Backend->new($opt{section});
+
+if ( $opt{list} ) {
+    if ( $opt{filename} ) {
+        pod2usage(-verbose => 0, -exitval => 1, -message => "using --list with a filename is not supported");
+    }
+    my $timesheet = $backend->get_timesheet(TKS::Date->new($opt{list}), $opt{user});
+    ts_print($timesheet);
+}
+elsif ( $opt{edit} ) {
+    if ( $opt{filename} ) {
+        pod2usage(-verbose => 0, -exitval => 1, -message => "using --list with a filename is not supported");
+    }
+    my $timesheet = $backend->get_timesheet(TKS::Date->new($opt{edit}));
+    my $new_timesheet = $timesheet->edit();
+
+    if ( $new_timesheet ) {
+        my $diff = $timesheet->diff($new_timesheet);
+        $backend->add_timesheet($diff);
+        ts_print($new_timesheet);
+    }
+    else {
+        print "Timesheet wasn't saved, no modifications made\n";
     }
 }
+else {
+    die "No file specified" unless $filename;
+    die "File $filename not readable" unless -r $filename;
+    my $timesheet = TKS::Timesheet->from_file($filename);
+    my $filter_warning;
 
-# look through data for WR info, print it and potentially commit
-my @lines = read_file($args->{'<file>'});
-my $file_needs_write = 0;
-my $total_time = 0.0;
-
-foreach my $date ( sort keys %{$tkdata} ) {
-    my $date_has_data = 0;
-    @{$tkdata->{$date}} = grep { exists $_->{wr} and $_->{wr} =~ m{ \A \d+ \z }xms } @{$tkdata->{$date}};
-    foreach my $entry ( sort { $a->{wr} <=> $b->{wr} } @{$tkdata->{$date}} ) {
-        $date_has_data = 1;
-
-        printf("%s\t%5d\t%.2f\t%s\n", $date, $entry->{wr}, $entry->{time}, ($entry->{review_needed} ? '[review] ' : '') . $entry->{comment});
-
-        next unless $args->{'-c'};
-
-        $entry->{time} = int($entry->{time} * 100 + .5) / 100;
-
-        # add the time to wrms
-        $wrms->add_time(
-            $entry->{wr},
-            $date,
-            $entry->{comment},
-            $entry->{time},
-            $entry->{review_needed},
-        );
-
-        # comment it out in the file
-        @lines[$entry->{linenumber} - 1] = '# ' . @lines[$entry->{linenumber} - 1];
-        $file_needs_write = 1;
+    if ( $opt{filter} ) {
+        $filter_warning = $timesheet->time;
+        $timesheet = $timesheet->filter_date($opt{filter});
+        $filter_warning -= $timesheet->time;
     }
 
-
-    my $day_time_taken = sum map { $_->{time} or 0 } @{$tkdata->{$date}};
-    printf(" " x length($date) . "\t\t%.2f\n\n", $day_time_taken) if $date_has_data;
-    $total_time += $day_time_taken if $day_time_taken;
-}
-
-write_file($args->{'<file>'}, @lines) if $file_needs_write;
-
-printf("Total time: %.2f\n", $total_time);
-print "Run this program again with -c to commit the work\n" unless $args->{'-c'} or $total_time == 0;
-
-
-
-
-
-# Named for compatibility with scriptalicious
-sub mutter {
-    print shift if $VERBOSE;
-}
-
-# Loads data from a TKS timesheet file into a structure looking like this:
-#
-# [
-#    'date' => [
-#               {
-#                   'line'    => 'original line in the tks file',
-#                   'wr'      => WR number for this line (if any)
-#                   'time'    => Amount of time spent
-#                   'comment' => Comment for this line of work
-#               },
-#               {
-#                   'line' => ...
-#               }
-#              ],
-#    'date' => [
-#               ...
-#              ]
-# ]
-sub load_timesheet_file {
-    my ($file) = @_;
-
-    my $result = {};
-    my $current_date = '';
-    my @lines = read_file($file);
-
-    my $i = 0;
-    foreach my $line ( @lines ) {
-        ++$i;
-        my $linedata = parse_line($line, $i);
-        $linedata->{linenumber} = $i;
-
-        if ( $linedata->{wr} ) {
-            mutter " ** WR: $linedata->{wr}" . (" " x (16 - length($linedata->{wr}))) . "TIME: $linedata->{time}   COMMENT: $linedata->{comment}\n";
-            unless ( $current_date ) {
-                die "Whoops - timesheet data encountered before date?";
-            }
-
-            $linedata->{review_needed} = 0;
-            if ( $linedata->{comment} =~ m/ ^ \[ review \] \s* /xms ) {
-                mutter " *** This line requires review: " . $linedata->{line};
-                $linedata->{review_needed} = 1;
-                $linedata->{comment} =~ s/ ^ \[ review \] \s* //xms;
-            }
-
-            push @{$result->{$current_date}}, $linedata;
-        }
-        elsif ( $linedata->{date} ) {
-            mutter " * Date: $linedata->{date}\n";
-            if ( $current_date ne $linedata->{date} ) {
-                $current_date = $linedata->{date};
-                $result->{$current_date} = [];
-            }
+    $timesheet->backend($backend);
+    ts_print($timesheet);
+    if ( $opt{commit} ) {
+        my $existing = $backend->get_timesheet($timesheet->dates);
+        my $diff = $existing->diff($timesheet);
+        if ( $diff->entries ) {
+            print STDERR "Committing ...\n";
+            $backend->add_timesheet($diff, 1);
         }
         else {
-            mutter "Boring line: $line";
+            print STDERR "No changes, nothing to commit\n";
         }
     }
-
-    foreach my $date ( keys %{$result} ) {
-        if ( my @errors = grep { $_->{needs_closing_time} } @{$result->{$date}} ) {
-            foreach my $error ( @errors ) {
-                print "Error on line ", $error->{linenumber}, ": no closing time found\n";
-            }
-            exit 1;
-        }
+    if ( $filter_warning ) {
+        my $color_on = ( -t STDOUT and not $opt{'no-color'} );
+        printf
+            "\n%swarning:%s %0.2f hours in your file %s%s%s fell outside the datespec %s%s%s and were not %s\n\n",
+            $color_on ? color('bold red') : '',
+            $color_on ? color('reset') : '',
+            $filter_warning,
+            $color_on ? color('bold blue') : '',
+            $filename,
+            $color_on ? color('reset') : '',
+            $color_on ? color('bold blue') : '',
+            $opt{filter},
+            $color_on ? color('reset') : '',
+            $opt{commit} ? 'committed' : 'displayed',
+        ;
     }
-
-    return $result;
 }
 
-# Examine the line for timekeeping information. Returns a hashref describing
-# the data retrieved.
-#
-# This hashref always has a 'line' key, containing the contents of the line. If
-# the line had valid timesheeting information on it too, that is returned
-# (using the 'wr', 'date', 'time' and 'comment' fields)
-my $lastline;
-sub parse_line {
-    my ($line, $linenumber) = @_;
+sub ts_print {
+    my ($timesheet) = @_;
 
-    my $result = {};
-    $result->{line} = $line;
-
-    return $result if $line =~ m/^ \s* \#/xms;
-
-    if (
-        $line =~ m{^ ( \d+ / \d+ / \d\d (\d\d)? ) }xms   # dd/mm/yy or dd/mm/yyyy
-        or $line =~ m{^ ( \d{4} / \d+ / \d+ ) }xms       # yyyy/mm/dd
-        or $line =~ m{^ ( \d{4} - \d+ - \d+ ) }xms       # yyyy-mm-dd
-    ) {
-        if ( $lastline->{needs_closing_time} ) {
-            print "Error on line $linenumber: no closing time found before date $1\n";
-            exit 1;
-        }
-        $result->{date} = $1;
-        return $result;
+    if ( -t STDOUT and not $opt{'no-color'} ) {
+        print $timesheet->as_color_string;
     }
-
-    if ( $line =~ m{\A
-            ( \d+ | [a-zA-Z0-9_-]+ ) \s+   # Work request number OR alias
-            ( \d\d? | \d* \. \d+ ) \s+     # Time in integer or decimal
-            ( .* ) \z}xms ) {
-        $result->{wr}      = $1;
-        $result->{time}    = $2;
-        $result->{comment} = $3;
-        chomp $result->{comment};
+    else {
+        print $timesheet->as_string;
     }
-
-    if ( $line =~ m{\A
-            ( \d+ | [a-zA-Z0-9_-]+ ) \s+              # Work request number OR alias
-            ( \d\d?:?\d\d ( \- \d\d?:?\d\d )? ) \s+   # Time specified in 24 hour time
-            ( .* ) \z}xms ) {
-        mutter " ** Found a time-based line: $1   $2\n";
-        $result->{wr} = $1;
-        $result->{comment} = $4;
-        chomp $result->{comment};
-
-        my $time = $2;
-
-        # If we have a start-to-end formatted time
-        if ( $time =~ m/-/ ) {
-            my ($start, $end) = split(/-/, $time);
-            $start = convert_to_minutes($start);
-            $end   = convert_to_minutes($end);
-            $result->{time} = ($end - $start) / 60;
-
-            $lastline->{time} = ($start - $lastline->{time}) / 60 if $lastline->{needs_closing_time};
-            $lastline->{needs_closing_time} = 0;
-        }
-        else {
-            $lastline->{time} = (convert_to_minutes($time) - $lastline->{time}) / 60 if $lastline->{needs_closing_time};
-            $lastline->{needs_closing_time} = 0;
-
-            # We have a starting date only - need to wait for the next line
-            $result->{needs_closing_time} = 1;
-            $result->{time} = convert_to_minutes($time);
-            $lastline = $result;
-        }
-
-    }
-
-    return $result;
 }
 
 
-sub convert_to_minutes {
-    my ($time) = @_;
-    if ( $time =~ m/:/ ) {
-        my ($hours, $minutes) = split(/:/, $time);
-        return $hours * 60 + $minutes;
-    }
-    elsif ( length($time) == 4) {
-        # 24 hour time
-        return substr($time, 0, 2) * 60 + substr($time, 2);
-    }
-    die("Time in invalid format: $time");
-}
+exit 0;
+
+__END__
+
+=head1 NAME
+
+tks - Time keeping sucks. TKS makes it suck less.
+
+=head1 DESCRIPTION
+
+Time keeping sucks. TKS makes it suck less.
+
+=head1 SYNOPSIS
+
+  tks [options] [-s <section>] [<file>]
+           tks --help
+           tks --version
+
+=head1 OPTIONS
+
+        -s                          Use the configuration for the named section
+                                    in your configuration file
+        --no-color                  Don't output with syntax-highlighting
+                                    (default: use colour if stdout is a tty)
+
+    Options (with a file name):
+
+        -c                          Write data to the backend (by default just
+                                    prints what _would_ happen)
+        -f <datespec>               Ignores all entries in the provided file
+                                    that fall outside the given datespec (a
+                                    warning will be printed if there are
+                                    entries that fall outside this range)
+
+    Options (without a file name):
+
+        -l <datespec>               Lists timesheet entries for <datespec>
+                                    (output is a valid TKS file)
+        -e <datespec>               Open your $EDITOR with the entries for
+                                    <datespec>, and after you've edited them,
+                                    commit them to the system
+
+    <datespec> can be many things: a date (YYYY-MM-DD), a list of dates and/or
+    a mnemonic like 'yesterday'. Consult the manpage for more information.
+
+    Example usage:
+
+        tks mytime.tks            # Parse and output time recorded in this file
+        tks -c mytime.tks         # Commit the time found in this file to the
+                                  # default backend
+        tks -s foo -e 2009-05-25  # Edit the time recorded in system 'foo' on
+                                  # 2009/05/25
+        tks -l lastweek,today     # Output all time recorded in the default
+                                  # system from last week and today
+
+=cut
+
+
+
