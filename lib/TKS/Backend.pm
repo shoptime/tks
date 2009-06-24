@@ -63,6 +63,8 @@ sub read_password {
 
     my $term = Term::ReadLine->new('tks');
 
+    die 'Need Term::ReadLine::Gnu installed' unless $term->ReadLine eq 'Term::ReadLine::Gnu';
+
     $term->{redisplay_function} = $term->{shadow_redisplay};
     my $password = $term->readline($prompt);
     $term->{redisplay_function} = undef;
