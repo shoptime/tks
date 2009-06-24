@@ -63,6 +63,20 @@ BEGIN {
     }
 
     if ( $file ) {
+        my $data = read_file($file);
+        if ( $data =~ s{ ^ \[ wrmap \] }{[requestmap]}xms ) {
+            print "------------------------------------------------------------------------------\n";
+            print "WARNING: Your config file $file has been altered\n\n";
+            print "The [wrmap] section has been renamed to [requestmap] to operate correctly with\n";
+            print "the new version of TKS\n\n";
+            print "Please run tks again with exactly the same arguments to continue your\noperation\n";
+            print "------------------------------------------------------------------------------\n";
+            write_file($file, $data);
+            exit 0;
+        }
+    }
+
+    if ( $file ) {
         $config = Config::IniFiles->new( -file => $file );
     }
     else {
