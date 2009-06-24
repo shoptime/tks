@@ -1,0 +1,9 @@
+=head1 NAME
+
+tksrc - User configuration file for tks
+
+=head1 DESCRIPTION
+
+The tksrc file describes the systems and other configuration for a given user running TKS.
+
+The file is in .INI format. It does not need to exist for TKS to function, though inevitably you will want to create one if you're not using Catalyst's WRMS system or you want to set up aliases.

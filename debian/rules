@@ -10,13 +10,17 @@ clean:
 	dh_testdir
 	dh_testroot
 	dh_clean
+	rm -f debian/tks.1 debian/tksrc.5
 
 binary:
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs
 	dh_installdocs
-	dh_installman tks.1
+	pod2man --center="User Manuals" tks.pl > $(CURDIR)/debian/tks.1
+	pod2man --section 5 --center="File Formats" doc/tksrc.pod > $(CURDIR)/debian/tksrc.5
+	dh_installman debian/tks.1 debian/tksrc.5
+	rm -f debian/tks.1 debian/tksrc.5
 	dh_compress
 	dh_fixperms
 
