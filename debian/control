@@ -10,7 +10,7 @@ Vcs-Browser: http://gitprivate.catalyst.net.nz/gw?p=tks.git;a=summary
 
 Package: tks
 Architecture: all
-Depends: libwww-mechanize-perl, libcrypt-ssleay-perl, libgetopt-declare-perl, libconfig-inifiles-perl, libxml-libxml-perl, libfile-slurp-perl
+Depends: libwww-mechanize-perl, libcrypt-ssleay-perl, libconfig-inifiles-perl, libxml-libxml-perl, libfile-slurp-perl, libmoose-perl, libjson-perl (>= 2.0), liblist-moreutils-perl, libdate-calc-perl, libterm-progressbar-perl, libterm-readline-gnu-perl
 Description: Reduces the overhead of time tracking for WRMS
  Now you can record your timesheets in a simple, readable format, and run a
  script to send the data to WRMS. No more dealing with that pesky web

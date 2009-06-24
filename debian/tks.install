@@ -2,3 +2,4 @@ ext/vim/ftdetect    usr/share/tks/vim
 ext/vim/ftplugin    usr/share/tks/vim
 ext/vim/syntax      usr/share/tks/vim
 ext/vim/tks.yaml    usr/share/vim/registry
+lib/TKS             usr/share/perl5

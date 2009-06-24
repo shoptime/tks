@@ -26,7 +26,6 @@ binary:
 	dh_install
 
 	cp $(CURDIR)/tks.pl $(CURDIR)/debian/tks/usr/bin/tks
-	cp -R $(CURDIR)/lib/WRMS* $(CURDIR)/debian/tks/usr/share/perl5
 
 	dh_gencontrol
 	dh_md5sums
