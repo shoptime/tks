@@ -38,8 +38,6 @@ pod2usage(-exitstatus => 0, -verbose => 1) if $opt{help};
 $opt{filename} = shift;
 
 $opt{section} ||= 'default';
-$opt{filename} ||= config($opt{section}, 'defaultfile');
-
 
 if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit))) > 1) {
     pod2usage(-exitval => 1, -message => "Options commit, list, and edit are mutually exclusive\n", -verbose => 0);
