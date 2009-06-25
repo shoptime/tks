@@ -20,6 +20,7 @@ Available options for the system sections:
   - password: Your password. You don't have to store this, you will be prompted for it if required
   - site: The URL of the system
   - backend: One of the installed TKS backends
+  - defaultfile: The TKS file to use by default for this system (allows you to skip specifying a filename)
 
 By default, tks is set to use https://wrms.catalyst.net.nz for a site and WRMSWeb as the backend. You can override these details by providing a "default" section.
 
