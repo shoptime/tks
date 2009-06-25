@@ -26,6 +26,8 @@ By default, tks is set to use https://wrms.catalyst.net.nz for a site and WRMSWe
 
 The "requestmap" section contains a list of request aliases to their actual identifiers used by the TKS backend. In the case of WRMS, the identifiers are the work request numbers.
 
+If you don't specify a username or password, you will be prompted for them when necessary, so there's no need to store your password in your .tksrc file if you don't want to.
+
 =head1 EXAMPLE FILE
 
   [default]
