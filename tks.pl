@@ -216,10 +216,25 @@ As an example, for the datespec 2009-05-25..2009-06-03,2009-08-01,today^:
   - The third datepart represents 'yesterday' (the mnemonic 'yesterday' works
     too)
 
+=head1 EDITING TIMESHEETS WITHOUT A TKS FILE
+
+You can do this with tks -e. If you accidentally filed a bunch of time for last
+year, or Saturday when you meant Monday, simply run tks -e, change the date and
+save/quit. The time will be moved to the new day.
+
+Naturally, you can alter descriptions/add timesheets etc. in this manner also.
+
 =head1 GETTING STARTED
 
 Reading this manpage and simply running tks is a great start. You may also be
 interested in the manpage for the "tksrc" file: man tksrc
+
+=head1 BUGS
+
+Please report bugs on the TKS wiki page: http://wiki.wgtn.cat-it.co.nz/wiki/TKS
+
+For those people using TKS not at Catalyst IT (greetz to Liip!) - please report
+bugs to whomever introduced TKS to you. They'll get back to us eventually.
 
 =head1 AUTHOR
 
