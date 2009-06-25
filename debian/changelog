@@ -1,3 +1,13 @@
+tks (1.0.0) unstable; urgency=low
+
+  * ground up rewrite
+  * supports multiple systems
+  * editing/deleting timesheets possible
+  * many other changes and bugfixes
+  * now with blackjack and hookers
+
+ -- Martyn Smith <martyn@catalyst.net.nz>  Thu, 25 Jun 2009 12:08:25 +1200
+
 tks (1.0.0~beta1) unstable; urgency=low
 
   * pre-release of the new TKS
