@@ -7,3 +7,41 @@ tksrc - User configuration file for tks
 The tksrc file describes the systems and other configuration for a given user running TKS.
 
 The file is in .INI format. It does not need to exist for TKS to function, though inevitably you will want to create one if you're not using Catalyst's WRMS system or you want to set up aliases.
+
+=head1 SECTIONS
+
+The tksrc file, like all INI files, is broken up into sections. Apart from the [requestmap] section, all sections refer to systems (see tks(1)).
+
+The "default" section is used for configuration when no -s option is passed to tks. Passing -s systemname to tks will cause it to use the configuration for the "systemname" section.
+
+Available options for the system sections:
+
+  - username: Your username for logging in
+  - password: Your password. You don't have to store this, you will be prompted for it if required
+  - site: The URL of the system
+  - backend: One of the installed TKS backends
+
+By default, tks is set to use https://wrms.catalyst.net.nz for a site and WRMSWeb as the backend. You can override these details by providing a "default" section.
+
+The "requestmap" section contains a list of request aliases to their actual identifiers used by the TKS backend. In the case of WRMS, the identifiers are the work request numbers.
+
+=head1 EXAMPLE FILE
+
+  [default]
+  username = nigelcat
+  
+  [test]
+  site = http://wrms.freud.wgtn.cat-it.co.nz/
+  username = nigelcat
+  backend = Medusa
+  
+  [requestmap]
+  fireme = 14
+
+=head1 AUTHOR
+
+This manpage is written by Nigel McNie. tks is written by Martyn Smith and Nigel McNie.
+
+=head1 SEE ALSO
+
+tks(1)

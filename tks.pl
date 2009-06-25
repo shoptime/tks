@@ -211,17 +211,21 @@ insensitive.
 
 As an example, for the datespec 2009-05-25..2009-06-03,2009-08-01,today^:
 
-- There are three dateparts: the date range at the start, the first of August
-  in the middle and the mnemonic at the end
-- The first datepart is a range, from the first date to the second, inclusive
-- The second datepart is exactly that date
-- The third datepart represents 'yesterday' (the mnemonic 'yesterday' works
-  too)
+  - There are three dateparts: the date range at the start, the first of August
+    in the middle and the mnemonic at the end
+  - The first datepart is a range, from the first date to the second, inclusive
+  - The second datepart is exactly that date
+  - The third datepart represents 'yesterday' (the mnemonic 'yesterday' works
+    too)
 
 =head1 GETTING STARTED
 
 Reading this manpage and simply running tks is a great start. You may also be
 interested in the manpage for the "tksrc" file: man tksrc
+
+=head1 AUTHOR
+
+tks is written by Martyn Smith and Nigel McNie. Martyn wrote almost all the code for this version, while Nigel criticised it constantly (he also helped by writing this documentation, which might make him redeemable).
 
 =cut
 
