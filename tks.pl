@@ -231,7 +231,11 @@ interested in the manpage for the "tksrc" file: man tksrc
 
 =head1 BUGS
 
-Please report bugs on the TKS wiki page: http://wiki.wgtn.cat-it.co.nz/wiki/TKS
+Please report bugs to bugzilla:
+http://bugzilla.catalyst.net.nz/enter_bug.cgi?product=TKS
+
+You can see a list of bugs here:
+http://bugzilla.catalyst.net.nz/buglist.cgi?query_format=specific&order=relevance+desc&bug_status=__open__&product=TKS&content=
 
 For those people using TKS not at Catalyst IT (greetz to Liip!) - please report
 bugs to whomever introduced TKS to you. They'll get back to us eventually.
