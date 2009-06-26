@@ -244,6 +244,10 @@ bugs to whomever introduced TKS to you. They'll get back to us eventually.
 
 tks is written by Martyn Smith and Nigel McNie. Martyn wrote almost all the code for this version, while Nigel criticised it constantly (he also helped by writing this documentation, which might make him redeemable).
 
+=head1 SEE ALSO
+
+tksrc(5), http://wiki.wgtn.cat-it.co.nz/wiki/TKS
+
 =cut
 
 
