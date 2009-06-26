@@ -388,6 +388,13 @@ sub as_string {
     my $date;
     my $date_total;
 
+    unless ( $self->entries ) {
+        $output .= $color ? color('bold blue') : '';
+        $output .= "# no entries in this timesheet\n";
+        $output .= $color ? color('reset') : '';
+        return $output;
+    }
+
     my $format_hours = sub {
         my ($date_total) = @_;
         return sprintf(
