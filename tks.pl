@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+our $VERSION = '1.0.0';
+
 use strict;
 use warnings;
 
@@ -29,11 +31,15 @@ use Term::ANSIColor;
 
 my(%opt);
 
-if(!GetOptions(\%opt, 'help|?', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s')) {
+if(!GetOptions(\%opt, 'help|?', 'version', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s')) {
     pod2usage(-exitval => 1,  -verbose => 0);
 }
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $opt{help};
+if ( $opt{version} ) {
+    print "tks version $VERSION\n";
+    exit 0;
+}
 
 $opt{filename} = shift;
 
