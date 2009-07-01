@@ -5,7 +5,7 @@ use Test::More;
 use File::Slurp;
 use List::Util qw(sum);
 
-plan tests => 15;
+plan tests => 16;
 
 use_ok('TKS::File');
 
@@ -53,4 +53,9 @@ is($@, 't/missing-comment.tks:6 Failed to parse line', 'Syntax errors correctly 
 eval { TKS::File->new('t/negative-time.tks') };
 chomp $@;
 is($@, q{t/negative-time.tks:6 Start time can't be after end time in '12:30-1:15'}, 'Negative time is not allowed');
+
+# Missing end time
+eval { TKS::File->new('t/missing-endtime.tks') };
+chomp $@;
+is($@, q{t/missing-endtime.tks:4 Got a date before a finish time in entry}, 'Missing end date reported correctly');
 
