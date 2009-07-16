@@ -6,6 +6,7 @@ package TKS::Timesheet;
 use Moose;
 use List::Util qw(sum);
 use Term::ANSIColor;
+use TKS::Date;
 use TKS::Entry;
 use TKS::Config;
 use File::Slurp;
@@ -26,14 +27,14 @@ around 'entries' => sub {
 };
 
 sub from_file {
-    my ($self, $filename) = @_;
+    my ($self, $filename, $force) = @_;
 
     my $data = scalar(read_file($filename));
 
-    return $self->from_string($data, $filename);
+    return $self->from_string($data, $filename, $force);
 }
 sub from_string {
-    my ($self, $string, $filename) = @_;
+    my ($self, $string, $filename, $force) = @_;
 
     my $class = ref $self || $self;
 
@@ -42,6 +43,7 @@ sub from_string {
     $timesheet->{parse_date} = undef;
     $timesheet->{parse_last_entry} = undef;
     $timesheet->{parse_filename} = $filename;
+    $timesheet->{force} = $force;
 
     my @entries;
 
@@ -78,11 +80,6 @@ sub from_string {
         delete $entry->{end};
     }
 
-    delete $timesheet->{parse_date};
-    delete $timesheet->{parse_last_entry};
-    delete $timesheet->{parse_line};
-    delete $timesheet->{parse_filename};
-
     foreach my $entry ( @entries ) {
         $entry->{request} = config('requestmap', $entry->{request}) || $entry->{request};
         $timesheet->addentry(TKS::Entry->new(
@@ -93,6 +90,20 @@ sub from_string {
             needs_review => $entry->{needs_review},
         ));
     }
+
+    my @big_days = grep { $_->[1] > 24 } map { [ $_ , $timesheet->filter_date($_)->time ] } $timesheet->dates->dates;
+
+    if ( @big_days ) {
+        foreach my $big_day ( @big_days ) {
+            $timesheet->_from_string_fail("$big_day->[1] hours on date $big_day->[0] is more than 24", $timesheet->{parse_line_for_date}{$big_day->[0]}, 1);
+        }
+    }
+
+    delete $timesheet->{parse_date};
+    delete $timesheet->{parse_last_entry};
+    delete $timesheet->{parse_line};
+    delete $timesheet->{parse_filename};
+    delete $timesheet->{parse_line_for_date};
 
     return $timesheet;
 }
@@ -108,12 +119,20 @@ sub _from_string_parse_line {
     # yyyy-mm-dd or yyyy/mm/dd
     if ( $line =~ m{ \A ( \d{4} ) ( [/-] ) ( \d{2} ) \2 ( \d{2} ) \b \s* (?: \# .* )? \z }xms ) {
         $self->{parse_date} = strftime('%F', 0, 0, 0, $4, $3 - 1, $1 - 1900);
+        if ( defined $result->{date} and $result->{date} ge $self->{parse_date} ) {
+            $self->_from_string_fail("Specified date $self->{parse_date} is earlier than the date before it", $result->{line}, 1);
+        }
+        $self->{parse_line_for_date}{$self->{parse_date}} = $result->{line};
         return;
     }
     if (
         $line =~    m{ \A ( \d+ ) / ( \d+ ) / ( \d\d (?:\d\d)? ) \b \s* (?: \# .* )? \z }xms # dd/mm/yy or dd/mm/yyyy
     ) {
         $self->{parse_date} = strftime('%F', 0, 0, 0, $1, $2 - 1, $3 >= 100 ? $3 - 1900 : $3 + 100);
+        if ( defined $result->{date} and $result->{date} ge $self->{parse_date} ) {
+            $self->_from_string_fail("Specified date $self->{parse_date} is earlier than the date before it", $result->{line}, 1);
+        }
+        $self->{parse_line_for_date}{$self->{parse_date}} = $result->{line};
         return;
     }
 
@@ -219,15 +238,23 @@ sub _from_string_timediff {
 }
 
 sub _from_string_fail {
-    my ($self, $message, $line) = @_;
+    my ($self, $message, $line, $overridable) = @_;
 
     $line ||= $self->{parse_line};
 
-    if ( $self->{parse_filename} ) {
-        die "$self->{parse_filename}: line $line: $message\n";
+    $message = "line $line: $message";
+
+    if ( not $self->{force} and $overridable ) {
+        $message .= ' (use --force to ignore this error)';
+    }
+
+    $message = "$self->{parse_filename}: $message" if $self->{parse_filename};
+
+    if ( $overridable and $self->{force} ) {
+        warn "WARNING: $message\n";
     }
     else {
-        die "line $line: $message\n";
+        die "$message\n";
     }
 }
 

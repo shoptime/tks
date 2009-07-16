@@ -5,7 +5,7 @@ use Test::More;
 use File::Slurp;
 use List::Util qw(sum);
 
-plan tests => 16;
+plan tests => 15;
 
 use_ok('TKS::Timesheet');
 
@@ -54,3 +54,27 @@ is($@, q{t/negative-time.tks: line 6: Start time can't be after end time in '12:
 eval { TKS::Timesheet->from_file('t/missing-endtime.tks') };
 chomp $@;
 is($@, q{t/missing-endtime.tks: line 4: Got end of file before a finish time in entry}, 'Missing end date reported correctly');
+
+# Out of order dates
+eval { TKS::Timesheet->from_string("2009-06-06\n2009-06-07\n2009-06-01\n"); };
+chomp $@;
+is($@, q{line 3: Specified date 2009-06-01 is earlier than the date before it (use --force to ignore this error)}, 'Dates should be in order');
+
+# Out of order dates (with the --force switch)
+{
+    local $SIG{__WARN__} = sub {};
+    eval { TKS::Timesheet->from_string("2009-06-06\n2009-06-07\n2009-06-01\n", undef, 1); };
+    is($@, '', 'Dates should be in order except when using --force');
+}
+
+# Too many hours in a day
+eval { TKS::Timesheet->from_string("2009-06-06\n1 25 comment"); };
+chomp $@;
+is($@, q{line 1: 25 hours on date 2009-06-06 is more than 24 (use --force to ignore this error)}, 'Dates should contain no more than 24 hours');
+
+# Too many hours in a day (with the --force switch
+{
+    local $SIG{__WARN__} = sub {};
+    eval { TKS::Timesheet->from_string("2009-06-06\n1 25 comment", undef, 1); };
+    is($@, '', 'Dates should contain no more than 24 hours except when using --force');
+}

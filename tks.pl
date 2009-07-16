@@ -31,7 +31,7 @@ use Term::ANSIColor;
 
 my(%opt);
 
-if(!GetOptions(\%opt, 'help|?', 'version', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s')) {
+if(!GetOptions(\%opt, 'help|?', 'version', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s', 'force')) {
     pod2usage(-exitval => 1,  -verbose => 0);
 }
 
@@ -80,7 +80,7 @@ elsif ( $opt{edit} ) {
 else {
     die "No file specified" unless $filename;
     die "File $filename not readable" unless -r $filename;
-    my $timesheet = TKS::Timesheet->from_file($filename);
+    my $timesheet = TKS::Timesheet->from_file($filename, $opt{force});
     my $filter_warning;
 
     if ( $opt{filter} ) {
@@ -165,6 +165,8 @@ Time keeping sucks. TKS makes it suck less.
                                     that fall outside the given datespec (a
                                     warning will be printed if there are
                                     entries that fall outside this range)
+        --force                     Turn recoverable errors into warnings when
+                                    parsing file
 
     Options (without a file name):
 
