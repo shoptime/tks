@@ -64,7 +64,7 @@ sub contains {
 sub add_datespec {
     my ($self, $datespec) = @_;
 
-    $self->{dates} = [ sort uniq @{$self->{dates}}, $self->parse_datespec($datespec) ];
+    $self->{dates} = [ sort(uniq(@{$self->{dates}}, $self->parse_datespec($datespec))) ];
     $self->{dateshash} = { map { $_ => 1 } @{$self->{dates}} };
 }
 
@@ -100,7 +100,7 @@ sub parse_datespec {
         }
     }
 
-    return uniq sort @dates;
+    return uniq(sort(@dates));
 }
 
 sub _make_range {
