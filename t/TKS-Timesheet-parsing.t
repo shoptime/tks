@@ -53,4 +53,4 @@ is($@, q{t/negative-time.tks: line 6: Start time can't be after end time in '12:
 # Missing end time
 eval { TKS::Timesheet->from_file('t/missing-endtime.tks') };
 chomp $@;
-is($@, q{t/missing-endtime.tks: line 4: Got a date before a finish time in entry}, 'Missing end date reported correctly');
+is($@, q{t/missing-endtime.tks: line 4: Got end of file before a finish time in entry}, 'Missing end date reported correctly');

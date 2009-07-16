@@ -61,6 +61,9 @@ sub from_string {
     # Resolve end times where appropriate
     foreach my $entry ( @entries ) {
         if ( $entry->{incomplete} ) {
+            unless ( defined $entry->{next_entry}{date} ) {
+                $timesheet->_from_string_fail('Got end of file before a finish time in entry', $entry->{line});
+            }
             unless ( $entry->{date} eq $entry->{next_entry}{date} ) {
                 $timesheet->_from_string_fail('Got a date before a finish time in entry', $entry->{line});
             }
