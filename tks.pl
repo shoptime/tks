@@ -44,6 +44,8 @@ if ( $opt{version} ) {
 $opt{filename} = shift;
 
 $opt{section} ||= 'default';
+$opt{filter} ||= config($opt{section}, 'defaultfilter');
+delete $opt{filter} if $opt{filter} and $opt{filter} eq 'all';
 
 if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit))) > 1) {
     pod2usage(-exitval => 1, -message => "Options commit, list, and edit are mutually exclusive\n", -verbose => 0);
@@ -161,7 +163,7 @@ Time keeping sucks. TKS makes it suck less.
 
         -c                          Write data to the backend (by default just
                                     prints what _would_ happen)
-        -f <datespec>               Ignores all entries in the provided file
+        --filter,-f <datespec>,     Ignores all entries in the provided file
                                     that fall outside the given datespec (a
                                     warning will be printed if there are
                                     entries that fall outside this range)
