@@ -427,6 +427,7 @@ sub as_string {
 
     my $format_hours = sub {
         my ($date_total) = @_;
+        return '' unless $date_total;
         return sprintf(
             "%s#            %5.2f    total hours%s\n",
             $color ? color('bold blue') : '',
@@ -450,6 +451,9 @@ sub as_string {
             $date = $entry->date;
             $date_total = 0;
         }
+
+        next if $entry->request eq '-';
+
         $date_total += $entry->time;
         my $request_color = 'yellow';
         if ( $self->backend and not $self->backend->valid_request($entry->request) ) {

@@ -31,7 +31,7 @@ use Term::ANSIColor;
 
 my(%opt);
 
-if(!GetOptions(\%opt, 'help|?', 'version', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s', 'force')) {
+if(!GetOptions(\%opt, 'help|?', 'version', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s', 'force', 'template|t=s')) {
     pod2usage(-exitval => 1,  -verbose => 0);
 }
 
@@ -47,8 +47,8 @@ $opt{section} ||= 'default';
 $opt{filter} ||= config($opt{section}, 'defaultfilter');
 delete $opt{filter} if $opt{filter} and $opt{filter} eq 'all';
 
-if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit))) > 1) {
-    pod2usage(-exitval => 1, -message => "Options commit, list, and edit are mutually exclusive\n", -verbose => 0);
+if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit template))) > 1) {
+    pod2usage(-exitval => 1, -message => "Options commit, list, template, and edit are mutually exclusive\n", -verbose => 0);
 }
 
 my $filename = $opt{filename} || config($opt{section}, 'defaultfile');
@@ -56,7 +56,19 @@ $filename =~ s{ \A ~ / }{"$ENV{HOME}/"}xmse if defined $filename;
 
 my $backend = TKS::Backend->new($opt{section});
 
-if ( $opt{list} ) {
+if ( $opt{template} ) {
+    my $timesheet = TKS::Timesheet->new();
+    map {
+        $timesheet->addentry(TKS::Entry->new(
+            date => $_,
+            time => 0,
+            request => '-',
+            comment => '',
+        ));
+    } TKS::Date->new($opt{template})->dates;
+    ts_print($timesheet);
+}
+elsif ( $opt{list} ) {
     if ( $opt{filename} ) {
         pod2usage(-verbose => 0, -exitval => 1, -message => "using --list with a filename is not supported");
     }
@@ -172,11 +184,14 @@ Time keeping sucks. TKS makes it suck less.
 
     Options (without a file name):
 
-        -l <datespec>               Lists timesheet entries for <datespec>
+        --list,-l <datespec>        Lists timesheet entries for <datespec>
                                     (output is a valid TKS file)
-        -e <datespec>               Open your $EDITOR with the entries for
+        --edit,-e <datespec>        Open your $EDITOR with the entries for
                                     <datespec>, and after you've edited them,
                                     commit them to the system
+        --template,-t <datespec>    Prints an "empty" timesheet to STDOUT (i.e.
+                                    just a list of dates in the correct format
+                                    matching the supplied datespec)
 
     <datespec> can be many things: a date (YYYY-MM-DD), a list of dates and/or
     a mnemonic like 'yesterday'. Consult the manpage for more information.
