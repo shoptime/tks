@@ -5,12 +5,18 @@ package TKS::Date;
 
 use strict;
 use warnings;
-use Data::Dumper; # TODO, remove
 use POSIX;
 use List::Util qw(maxstr minstr);
 use List::MoreUtils qw(uniq);
-use Date::Calc qw(Add_Delta_Days Add_Delta_YM Days_in_Month);
+use Date::Calc qw(Add_Delta_Days Add_Delta_YM Days_in_Month Mktime);
 use UNIVERSAL;
+
+my %month_for;
+
+foreach my $month ( 1..12 ) {
+    my $month_name = strftime('%B', localtime(Mktime(2009, $month, 1, 0, 0, 0)));
+    $month_for{lc $month_name} = sprintf('%02d', $month);
+}
 
 sub new {
     my ($self, $datespec) = @_;
@@ -185,8 +191,33 @@ sub _parse_datecomponent {
         return $self->_make_range($month_start, $self->_date(Days_in_Month(($self->_date_parts($month_start))[0..1])-1, $month_start));
     }
 
+    # Days by locale day name
+    if ( $component =~ m{ \A (\w+) ( \^ \d* | \^+ )? \z }ixms ) {
+        my @dates = $self->new('week' . ($2 || '' ))->dates;
+        my @result = ();
+        foreach my $date ( @dates ) {
+            my $day_name = strftime('%A', localtime(Mktime(split('-',$date), 0, 0, 0)));
+            push @result, $date if lc $1 eq lc $day_name;
+        }
+        return @result if @result;
+    }
+
+    # Months by locale month name
+    if ( $component =~ m{ \A (\w+) (?: ( \^ ) ( \d* ) | ( \^+ ) )? \z }ixms and exists $month_for{lc $1} ) {
+        my $years_ago = 0;
+        if ( $2 ) {
+            $years_ago = $3 || 1;
+        }
+        if ( $4 ) {
+            $years_ago = length($4);
+        }
+        my $month_start = sprintf('%04d-%02d-01', strftime('%Y', localtime) - $years_ago, $month_for{lc $1});
+        return $self->_make_range($month_start, $self->_date(Days_in_Month(($self->_date_parts($month_start))[0..1])-1, $month_start));
+    }
+
     die "Unable to parse '$component' as a date";
 }
+
 
 
 sub _date {
