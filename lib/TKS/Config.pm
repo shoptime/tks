@@ -55,9 +55,10 @@ BEGIN {
     mkdir "$ENV{HOME}/.cache" unless -d "$ENV{HOME}/.cache";
 
     my $file;
-    foreach my $potential_file ( qw( .config/tks .tksrc ) ) {
-        if ( -r "$ENV{HOME}/$potential_file" ) {
-            $file = "$ENV{HOME}/$potential_file";
+    foreach my $potential_file ( $ENV{TKS_RC}, "$ENV{HOME}/.config/tks", "$ENV{HOME}/.tksrc" ) {
+        next unless $potential_file;
+        if ( -r $potential_file ) {
+            $file = $potential_file;
             last;
         }
     }
@@ -89,6 +90,9 @@ BEGIN {
             die "[requestmap] entry '$key' has multiple mappings in $file\n";
         }
         $reverse_request_map->{$value} = $key;
+        if ( $value =~ s{ \A \s* (.*?) \s* \z }{$1}xms ) {
+            $config->setval('requestmap', $key, $value);
+        }
     }
 
     $config_store = {};
