@@ -16,10 +16,25 @@ use URI;
 use Term::ProgressBar;
 use POSIX;
 
+sub user_agent_string {
+    my ($self) = @_;
+
+    my $tks_version = $main::VERSION || 'unknown';
+    my $user_agent_string = "tks/$tks_version";
+
+    my $user_no = $self->instance_config('wrms_user_no');
+
+    if ( $user_no ) {
+        $user_agent_string .= " user_no=$user_no";
+    }
+
+    return $user_agent_string;
+}
+
 sub init {
     my ($self) = @_;
 
-    my $mech = $self->{mech} = WWW::Mechanize->new();
+    my $mech = $self->{mech} = WWW::Mechanize->new( agent => $self->user_agent_string );
     $mech->quiet(1);
     $self->{parser} = XML::LibXML->new();
     $self->{parser}->recover(1);
@@ -110,6 +125,7 @@ sub _login {
 
     $self->{wrms_user_no} = $1;
     $self->instance_config_set('wrms_user_no', $self->{wrms_user_no});
+    $self->{mech}->agent($self->user_agent_string);
 
     $mech->cookie_jar->scan(sub {
         my (undef, $key, $value, undef, $domain) = @_;
