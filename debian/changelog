@@ -1,3 +1,16 @@
+tks (1.0.2) unstable; urgency=low
+
+  * bug#3331 - Fixed syntax highlighting of dd/mm/yyyy dates
+  * bug#3332 - Added defaultfilter support to tksrc
+  * bug#3430 - Added --template option for generating empty timesheets
+  * bug#3432 - Added named day/month support
+  * bug#3579 - Strip trailing whitespace from requestmap entries
+  * Customised user-agent string for requests to WRMS
+  * Refactored file parsing tests (and added some more)
+  * Test for > 24 hours and out of order dates (with --force to ignore)
+
+ -- Martyn Smith <martyn@catalyst.net.nz>  Thu, 06 Aug 2009 17:31:36 +1200
+
 tks (1.0.1) unstable; urgency=low
 
   * Many documentation updates
