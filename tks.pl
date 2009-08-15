@@ -52,7 +52,7 @@ if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit template)))
 }
 
 my $filename = $opt{filename} || config($opt{section}, 'defaultfile');
-$filename =~ s{ \A ~ / }{"$ENV{HOME}/"}xmse if defined $filename;
+$filename =~ s( \A ~ / )("$ENV{HOME}/")xmse if defined $filename;
 
 my $backend = TKS::Backend->new($opt{section});
 
