@@ -54,8 +54,13 @@ BEGIN {
     $store_filename = "$ENV{HOME}/.cache/tksinfo";
     mkdir "$ENV{HOME}/.cache" unless -d "$ENV{HOME}/.cache";
 
+    my @potential_files;
+    push @potential_files, $ENV{TKS_RC} if exists $ENV{TKS_RC};
+    push @potential_files, "$ENV{HOME}/.config/tks";
+    push @potential_files, "$ENV{HOME}/.tksrc" ;
+
     my $file;
-    foreach my $potential_file ( $ENV{TKS_RC}, "$ENV{HOME}/.config/tks", "$ENV{HOME}/.tksrc" ) {
+    foreach my $potential_file ( @potential_files ) {
         next unless $potential_file;
         if ( -r $potential_file ) {
             $file = $potential_file;
