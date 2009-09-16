@@ -1,3 +1,9 @@
+tks (1.0.3) unstable; urgency=low
+
+  * Fixed weird WWW::Mechanize warning
+
+ -- Martyn Smith <martyn@catalyst.net.nz>  Wed, 16 Sep 2009 17:02:19 +1200
+
 tks (1.0.2) unstable; urgency=low
 
   * bug#3331 - Fixed syntax highlighting of dd/mm/yyyy dates
