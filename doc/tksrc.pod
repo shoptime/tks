@@ -22,6 +22,7 @@ Available options for the system sections:
   - backend: One of the installed TKS backends
   - defaultfile: The TKS file to use by default for this system (allows you to skip specifying a filename)
   - defaultfilter: The default filter to use when processing a file (like the --filter option to tks)
+  - case-insensitive: Should the [requestmap] section be treated case insensitively? (0 or 1, default 0)
 
 By default, tks is set to use https://wrms.catalyst.net.nz for a site and WRMSWeb as the backend. You can override these details by providing a "default" section.
 

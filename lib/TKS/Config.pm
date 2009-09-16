@@ -16,6 +16,7 @@ our @EXPORT_OK = qw(config_set config_delete);
 my $config;
 my $config_store;
 my $reverse_request_map;
+my $lowcase_request_map;
 my $store_filename;
 
 sub config {
@@ -24,6 +25,7 @@ sub config {
     return unless $section;
 
     return $reverse_request_map->{$key} if $section eq 'reverserequestmap';
+    return $lowcase_request_map->{lc $key} if $section eq 'lowcaserequestmap';
 
     return $config_store->{$section}{$key} || $config->val($section, $key);
 };
@@ -94,10 +96,11 @@ BEGIN {
         if ( ref $value or $value =~ /\n/ ) {
             die "[requestmap] entry '$key' has multiple mappings in $file\n";
         }
-        $reverse_request_map->{$value} = $key;
         if ( $value =~ s{ \A \s* (.*?) \s* \z }{$1}xms ) {
             $config->setval('requestmap', $key, $value);
         }
+        $reverse_request_map->{$value} = $key;
+        $lowcase_request_map->{lc $key} = $value;
     }
 
     $config_store = {};

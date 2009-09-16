@@ -14,6 +14,8 @@ use File::Temp qw(tempfile);
 use Fcntl qw(:DEFAULT :flock);
 use POSIX;
 
+our $CASE_INSENSITIVE_REQUEST_MAP = 0;
+
 has 'entries' => ( is => 'rw', isa => 'ArrayRef[TKS::Entry]', required => 1, default => sub { [] } );
 has 'backend' => ( is => 'rw', isa => 'TKS::Backend' );
 
@@ -81,7 +83,12 @@ sub from_string {
     }
 
     foreach my $entry ( @entries ) {
-        $entry->{request} = config('requestmap', $entry->{request}) || $entry->{request};
+        if ( $CASE_INSENSITIVE_REQUEST_MAP ) {
+            $entry->{request} = config('lowcaserequestmap', $entry->{request}) || $entry->{request};
+        }
+        else {
+            $entry->{request} = config('requestmap', $entry->{request}) || $entry->{request};
+        }
         $timesheet->addentry(TKS::Entry->new(
             date         => $entry->{date},
             request      => $entry->{request},

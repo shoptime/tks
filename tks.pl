@@ -24,6 +24,7 @@ use warnings;
 
 use Pod::Usage;
 use Getopt::Long qw(GetOptions);
+use TKS::Timesheet;
 use TKS::Backend;
 use TKS::Config;
 use TKS::Date;
@@ -55,6 +56,10 @@ my $filename = $opt{filename} || config($opt{section}, 'defaultfile');
 $filename =~ s( \A ~ / )("$ENV{HOME}/")xmse if defined $filename;
 
 my $backend = TKS::Backend->new($opt{section});
+
+if ( config($opt{section}, 'case-insensitive') ) {
+    $TKS::Timesheet::CASE_INSENSITIVE_REQUEST_MAP = 1;
+}
 
 if ( $opt{template} ) {
     my $timesheet = TKS::Timesheet->new();
