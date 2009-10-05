@@ -171,43 +171,46 @@ Time keeping sucks. TKS makes it suck less.
 
 =head1 OPTIONS
 
-        -s                          Use the configuration for the named section
-                                    in your configuration file
+        -s                          Use the configuration for the named
+                                    section in your configuration file
         --no-color                  Don't output with syntax-highlighting
                                     (default: use colour if stdout is a tty)
 
     Options (with a file name):
 
-        -c                          Write data to the backend (by default just
-                                    prints what _would_ happen)
+        -c                          Write data to the backend (by default
+                                    just prints what _would_ happen)
         --filter,-f <datespec>,     Ignores all entries in the provided file
                                     that fall outside the given datespec (a
                                     warning will be printed if there are
                                     entries that fall outside this range)
-        --force                     Turn recoverable errors into warnings when
-                                    parsing file
+        --force                     Turn recoverable errors into warnings
+                                    when parsing file
 
     Options (without a file name):
 
         --list,-l <datespec>        Lists timesheet entries for <datespec>
                                     (output is a valid TKS file)
         --edit,-e <datespec>        Open your $EDITOR with the entries for
-                                    <datespec>, and after you've edited them,
-                                    commit them to the system
-        --template,-t <datespec>    Prints an "empty" timesheet to STDOUT (i.e.
-                                    just a list of dates in the correct format
-                                    matching the supplied datespec)
+                                    <datespec>, and after you've edited
+                                    them, commit them to the system
+        --template,-t <datespec>    Prints an "empty" timesheet to STDOUT
+                                    (i.e., just a list of dates in the
+                                    correct format matching the supplied
+                                    datespec)
 
-    <datespec> can be many things: a date (YYYY-MM-DD), a list of dates and/or
-    a mnemonic like 'yesterday'. Consult the manpage for more information.
+    <datespec> can be many things: a date (YYYY-MM-DD), a list of dates
+    and/or a mnemonic like 'yesterday'. Consult the manpage for more
+    information.
 
     Example usage:
 
-        tks mytime.tks            # Parse and output time recorded in this file
-        tks -c mytime.tks         # Commit the time found in this file to the
-                                  # default backend
-        tks -s foo -e 2009-05-25  # Edit the time recorded in system 'foo' on
-                                  # 2009/05/25
+        tks mytime.tks            # Parse and output time recorded in this
+                                  # file
+        tks -c mytime.tks         # Commit the time found in this file to
+                                  # the default backend
+        tks -s foo -e 2009-05-25  # Edit the time recorded in system 'foo'
+                                  # on 2009/05/25
         tks -l lastweek,today     # Output all time recorded in the default
                                   # system from last week and today
 
