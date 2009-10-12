@@ -6,6 +6,7 @@ package TKS::Timesheet;
 use Moose;
 use List::Util qw(sum);
 use Term::ANSIColor;
+use Scalar::Util qw(blessed);
 use TKS::Date;
 use TKS::Entry;
 use TKS::Config;
@@ -38,7 +39,7 @@ sub from_file {
 sub from_string {
     my ($self, $string, $filename, $force) = @_;
 
-    my $class = ref $self || $self;
+    my $class = blessed $self || $self;
 
     my $timesheet = $class->new();
 
@@ -280,7 +281,7 @@ sub dates {
 sub clone {
     my ($self) = @_;
 
-    my $timesheet = $self->new();
+    my $timesheet = ( blessed $self )->new();
 
     foreach my $entry ( $self->entries ) {
         $timesheet->addentry($entry->clone);
@@ -292,7 +293,7 @@ sub clone {
 sub invert {
     my ($self) = @_;
 
-    my $timesheet = $self->new();
+    my $timesheet = ( blessed $self )->new();
 
     foreach my $entry ( $self->entries ) {
         $entry = $entry->clone;
@@ -307,7 +308,7 @@ sub diff {
 
     $self = $self->compact;
     $timesheet = $timesheet->compact;
-    my $diff = $self->new();
+    my $diff = ( blessed $self )->new();
 
     foreach my $entry ( $self->entries ) {
         my ($match) = $timesheet->entry_search($entry);
@@ -389,7 +390,7 @@ sub filter_date {
 
     $date = TKS::Date->new($date);
 
-    my $timesheet = $self->new();
+    my $timesheet = ( blessed $self )->new();
 
     foreach my $entry ( $self->entries ) {
         next unless $date->contains($entry->date);
@@ -402,7 +403,7 @@ sub filter_date {
 sub filter_request {
     my ($self, $request) = @_;
 
-    my $timesheet = $self->new();
+    my $timesheet = ( blessed $self )->new();
 
     foreach my $entry ( $self->entries ) {
         next unless $entry->request eq $request;
@@ -564,7 +565,7 @@ sub invoke_editor {
 sub negative_to_zero {
     my ($self) = @_;
 
-    my $timesheet = $self->new();
+    my $timesheet = ( blessed $self )->new();
 
     foreach my $entry ( $self->entries ) {
         $entry = $entry->clone;
@@ -578,7 +579,7 @@ sub negative_to_zero {
 sub compact {
     my ($self) = @_;
 
-    my $timesheet = $self->new();
+    my $timesheet = ( blessed $self )->new();
 
     my $entries = {};
 
