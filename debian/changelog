@@ -1,3 +1,11 @@
+tks (1.0.4) unstable; urgency=low
+
+  * Support for "case insensitive" request maps (read `man tksrc`)
+  * --help output now fits in an 80 column terminal
+  * Fix deprecated method calls for new Moose version (in Debian sid)
+
+ -- Martyn Smith <martyn@catalyst.net.nz>  Wed, 14 Oct 2009 14:45:17 +1300
+
 tks (1.0.3) unstable; urgency=low
 
   * Fixed weird WWW::Mechanize warning
