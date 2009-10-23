@@ -382,7 +382,7 @@ sub size {
 sub time {
     my ($self) = @_;
 
-    return sum( map { $_->time } $self->entries );
+    return sum( map { $_->time } $self->entries ) || 0;
 }
 
 sub filter_date {
