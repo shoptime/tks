@@ -157,129 +157,219 @@ __END__
 
 =head1 NAME
 
-tks - Time keeping sucks. TKS makes it suck less.
-
-=head1 DESCRIPTION
-
-Time keeping sucks. TKS makes it suck less.
+tks - time keeping sucks, TKS makes it suck less
 
 =head1 SYNOPSIS
 
-  tks [options] [-s <section>] [<file>]
-           tks --help
-           tks --version
+B<tks> [I<options>] [B<-s> I<section>] [I<file>]
+
+=head1 DESCRIPTION
+
+B<tks> is a utility to make it easier to enter timesheets into
+the WRMS instance used inside Catalyst IT.
+See L<http://wiki.wgtn.cat-it.co.nz/wiki/Timesheeting> for a description
+of timesheeting within the company.
 
 =head1 OPTIONS
 
-        -s                          Use the configuration for the named
-                                    section in your configuration file
-        --no-color                  Don't output with syntax-highlighting
-                                    (default: use colour if stdout is a tty)
+=over 4
 
-    Options (with a file name):
+=item B<-s> I<section>
 
-        -c                          Write data to the backend (by default
-                                    just prints what _would_ happen)
-        --filter,-f <datespec>,     Ignores all entries in the provided file
-                                    that fall outside the given datespec (a
-                                    warning will be printed if there are
-                                    entries that fall outside this range)
-        --force                     Turn recoverable errors into warnings
-                                    when parsing file
+Use the configuration for the named section in your configuration file.
 
-    Options (without a file name):
+=item B<--no-color>
 
-        --list,-l <datespec>        Lists timesheet entries for <datespec>
-                                    (output is a valid TKS file)
-        --edit,-e <datespec>        Open your $EDITOR with the entries for
-                                    <datespec>, and after you've edited
-                                    them, commit them to the system
-        --template,-t <datespec>    Prints an "empty" timesheet to STDOUT
-                                    (i.e., just a list of dates in the
-                                    correct format matching the supplied
-                                    datespec)
+Don't output with syntax-highlighting 
+(default: use colour if stdout is a tty).
 
-    <datespec> can be many things: a date (YYYY-MM-DD), a list of dates
-    and/or a mnemonic like 'yesterday'. Consult the manpage for more
-    information.
+=item B<--help>
 
-    Example usage:
+Write a summary of command line use.
 
-        tks mytime.tks            # Parse and output time recorded in this
-                                  # file
-        tks -c mytime.tks         # Commit the time found in this file to
-                                  # the default backend
-        tks -s foo -e 2009-05-25  # Edit the time recorded in system 'foo'
-                                  # on 2009/05/25
-        tks -l lastweek,today     # Output all time recorded in the default
-                                  # system from last week and today
+=item B<--version>
 
-=head1 DATESPECS
+Write the version of the program.
+
+=back
+
+The following options require a filename:
+
+=over 4
+
+=item B<-c>
+
+Write data to the backend (by default just prints what _would_ happen).
+
+=item B<-f>, B<--filter>=I<datespec>
+
+Ignores all entries in the provided file
+that fall outside the given I<datespec> (a
+warning will be printed if there are
+entries that fall outside this range).
+
+=item B<--force>
+
+Turn recoverable errors into warnings when parsing file
+
+=back
+
+The following options do not want a filename:
+
+=over 4
+
+=item B<-l>, B<--list>=I<datespec>
+
+Lists timesheet entries for I<datespec> (output is a valid TKS file).
+
+=item B<-e>, B<--edit>=I<datespec>
+
+Open your C<$EDITOR> with the entries for I<datespec>, 
+and after you've edited them, commit them to the system.
+
+=item B<-t>, B<--template>=I<datespec>
+
+Prints an "empty" timesheet to the standard output
+(i.e., just a list of dates in the correct format matching the supplied
+I<datespec>).
+
+=back
+
+I<datespec> can be many things: 
+a date (YYYY-MM-DD), 
+a list of dates
+and/or 
+a mnemonic like 'yesterday'. 
+Consult the manpage for more information.
+(FIXME: This is the manpage, it needs more information added.)
+
+=head2 Datespecs
 
 Some command line arguments take a 'datespec' as their value. Datespecs
-represent a list of one or more dates. Some examples:
+represent a list of one or more dates. Some examples follow.
 
-    # this exact date
-    2009/05/25
-    # whatever date 'yesterday' was
-    yesterday
-    # All days from the 25th of May to the 3rd of June inclusive, and the 1st of August
-    2009-05-25..2009-06-03,2009-08-01
-    # From the first day of last month until the last day of last week, and today
-    lastmonth..lastweek,today
+=over 4
 
-The examples should give you a feel for the allowed syntax, the following is a
-more thorough description.
+=item B<2009/05/25>
 
-A datespec itself is a list of one or more *dateparts*, separated by commas. A
-datepart can represent just one date, or a list of dates. A datepart is either
-one *datetoken*, or two datetokens separated by ``..``.
+An exact date.
 
-Datetokens are specified either in a standard date format, or are mnemonics
-representing dates. The mnemonic forms can be modified with ``^`` notation to
-retrieve previous dates or ranges of dates as appropriate. Mnemonics are case
-insensitive.
+=item B<yesterday>
 
-As an example, for the datespec 2009-05-25..2009-06-03,2009-08-01,today^:
+Whatever date yesterday was.
 
-  - There are three dateparts: the date range at the start, the first of August
-    in the middle and the mnemonic at the end
-  - The first datepart is a range, from the first date to the second, inclusive
-  - The second datepart is exactly that date
-  - The third datepart represents 'yesterday' (the mnemonic 'yesterday' works
-    too)
+=item B<2009-05-25..2009-06-03,2009-08-01>
+
+All days from the 25th of May to the 3rd of June inclusive, 
+and the 1st of August.
+
+=item B<lastmonth..lastweek,today>
+
+From the first day of last month until the last day of 
+last week, and today.
+
+=back
+
+The examples should give you a feel for the allowed syntax, 
+the following is a more thorough description.
+
+A datespec itself is a list of one or more I<dateparts>, 
+separated by commas. 
+A datepart can represent just one date, or a list of dates. 
+A datepart is either one I<datetoken>, 
+or two datetokens separated by C<..>.
+
+Datetokens are specified either in a standard date format, 
+or are mnemonics representing dates. 
+The mnemonic forms can be modified with C<^> notation to
+retrieve previous dates or ranges of dates as appropriate. 
+Mnemonics are case insensitive.
+
+As an example, for the datespec:
+
+    2009-05-25..2009-06-03,2009-08-01,today^
+
+There are three dateparts: 
+the date range at the start, 
+the first of August in the middle,
+and the mnemonic at the end.
+
+=over 4
+
+=item *
+
+The first datepart is a range, 
+from the first date to the second, inclusive.
+
+=item *
+
+The second datepart is exactly that date.
+
+=item *
+
+The third datepart represents 'yesterday' 
+(the mnemonic C<yesterday> works too).
+
+=back
 
 =head1 EDITING TIMESHEETS WITHOUT A TKS FILE
 
-You can do this with tks -e. If you accidentally filed a bunch of time for last
-year, or Saturday when you meant Monday, simply run tks -e, change the date and
-save/quit. The time will be moved to the new day.
+You can do this with C<tks -e>. 
+If you accidentally filed a bunch of time for last year, 
+or Saturday when you meant Monday, simply run this command, 
+change the date and save/quit. 
+The time will be moved to the new day.
 
-Naturally, you can alter descriptions/add timesheets etc. in this manner also.
+Naturally, you can alter descriptions/add timesheets etc. in this 
+manner also.
 
 =head1 GETTING STARTED
 
-Reading this manpage and simply running tks is a great start. You may also be
-interested in the manpage for the "tksrc" file: man tksrc
+Reading this manpage and simply running tks is a great start. 
+You may also be interested in the L<tksrc(5)> manpage.
+
+=head1 EXAMPLE
+
+Parse and output time recorded in this file:
+
+    tks mytime.tks
+
+Commit the time found in this file to the default backend:
+
+    tks -c mytime.tks
+
+Edit the time recorded in system 'foo' on 2009/05/25:
+
+    tks -s foo -e 2009-05-25
+
+Output all time recorded in the default system from last week and today:
+
+    tks -l lastweek,today
 
 =head1 BUGS
 
 Please report bugs to bugzilla:
-http://bugzilla.catalyst.net.nz/enter_bug.cgi?product=TKS
+L<http://bugzilla.catalyst.net.nz/enter_bug.cgi?product=TKS>
 
 You can see a list of bugs here:
-http://bugzilla.catalyst.net.nz/buglist.cgi?query_format=specific&order=relevance+desc&bug_status=__open__&product=TKS&content=
+L<http://bugzilla.catalyst.net.nz/buglist.cgi?query_format=specific&order=relevance+desc&bug_status=__open__&product=TKS&content=>
 
-For those people using TKS not at Catalyst IT (greetz to Liip!) - please report
-bugs to whomever introduced TKS to you. They'll get back to us eventually.
+For those people using TKS not at Catalyst IT (greetz to Liip!) - 
+please report bugs to whomever introduced TKS to you. 
+They'll get back to us eventually.
 
 =head1 AUTHOR
 
-tks is written by Martyn Smith and Nigel McNie. Martyn wrote almost all the code for this version, while Nigel criticised it constantly (he also helped by writing this documentation, which might make him redeemable).
+B<tks> is written by Martyn Smith and Nigel McNie. 
+Martyn wrote almost all the code for this version, 
+while Nigel criticised it constantly 
+(he also helped by writing this documentation, 
+which might make him redeemable).
 
 =head1 SEE ALSO
 
-tksrc(5), http://wiki.wgtn.cat-it.co.nz/wiki/TKS
+L<tksrc(5)>, 
+L<http://wiki.wgtn.cat-it.co.nz/wiki/TKS>
 
 =cut
 
