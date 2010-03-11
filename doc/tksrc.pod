@@ -4,48 +4,95 @@ tksrc - User configuration file for tks
 
 =head1 DESCRIPTION
 
-The tksrc file describes the systems and other configuration for a given user running TKS.
+The B<.tksrc> in a home directory file describes the systems 
+and other configuration for a given user running L<tks(1)>.
 
-The file is in .INI format. It does not need to exist for TKS to function, though inevitably you will want to create one if you're not using Catalyst's WRMS system or you want to set up aliases.
+The file does not need to exist for TKS to function, 
+though inevitably you will want to create one 
+if you're not using Catalyst's WRMS system or 
+you want to set up aliases.
 
-=head1 SECTIONS
+=head2 Sections
 
-The tksrc file, like all INI files, is broken up into sections. Apart from the [requestmap] section, all sections refer to systems (see tks(1)).
+The B<.tksrc> file, like all C<.INI> files, is broken up into sections. 
+Apart from the B<requestmap> section, all sections refer to systems 
+(see L<tks(1)>).
 
-The "default" section is used for configuration when no -s option is passed to tks. Passing -s systemname to tks will cause it to use the configuration for the "systemname" section.
+The B<default> section is used for configuration 
+when no B<-s> option is passed to B<tks>. 
+Passing B<-s systemname> to B<tks> will cause it to use the configuration 
+for the B<systemname> section.
 
 Available options for the system sections:
 
-  - username: Your username for logging in
-  - password: Your password. You don't have to store this, you will be prompted for it if required
-  - site: The URL of the system
-  - backend: One of the installed TKS backends
-  - defaultfile: The TKS file to use by default for this system (allows you to skip specifying a filename)
-  - defaultfilter: The default filter to use when processing a file (like the --filter option to tks)
-  - case-insensitive: Should the [requestmap] section be treated case insensitively? (0 or 1, default 0)
+=over 4
 
-By default, tks is set to use https://wrms.catalyst.net.nz for a site and WRMSWeb as the backend. You can override these details by providing a "default" section.
+=item B<username>
 
-The "requestmap" section contains a list of request aliases to their actual identifiers used by the TKS backend. In the case of WRMS, the identifiers are the work request numbers.
+Your username for logging in.
 
-If you don't specify a username or password, you will be prompted for them when necessary, so there's no need to store your password in your .tksrc file if you don't want to.
+=item B<password>
 
-=head1 EXAMPLE FILE
+Your password. 
+You don't have to store this, you will be prompted for it if required.
 
-  [default]
-  username = nigelcat
+=item B<site>
+
+The URL of the system.
+
+=item B<backend>
+
+One of the installed TKS backends.
+
+=item B<defaultfile>
+
+The TKS file to use by default for this system 
+(allows you to skip specifying a filename).
+
+=item B<defaultfilter>
+
+The default filter to use when processing a file 
+(like the B<--filter> option to B<tks>).
+
+=item B<case-insensitive>
+
+Should the B<requestmap> section be treated case insensitively? 
+(0 or 1, default 0.)
+
+=back
+
+By default, B<tks> is set to use 
+L<https://wrms.catalyst.net.nz> for a site and WRMSWeb as the backend.
+You can override these details by providing a B<default> section.
+
+The B<requestmap> section contains a list of request aliases 
+to their actual identifiers used by the TKS backend. 
+In the case of WRMS, the identifiers are the work request numbers.
+
+If you don't specify a username or password, 
+you will be prompted for them when necessary, 
+so there's no need to store your password in 
+your B<.tksrc> file if you don't want to.
+
+=head1 EXAMPLE
+
+The following is a sample B<.tksrc> file.
+
+    [default]
+    username = nigelcat
   
-  [test]
-  site = http://wrms.freud.wgtn.cat-it.co.nz/
-  username = nigelcat
-  backend = Medusa
+    [test]
+    site = http://wrms.freud.wgtn.cat-it.co.nz/
+    username = nigelcat
+    backend = Medusa
   
-  [requestmap]
-  fireme = 14
+    [requestmap]
+    fireme = 14
 
 =head1 AUTHOR
 
-This manpage is written by Nigel McNie. tks is written by Martyn Smith and Nigel McNie.
+This manpage is written by Nigel McNie. 
+tks is written by Martyn Smith and Nigel McNie.
 
 =head1 SEE ALSO
 
