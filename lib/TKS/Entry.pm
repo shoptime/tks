@@ -26,10 +26,4 @@ sub invert_clone {
     return $self;
 };
 
-sub as_string {
-    my ($self) = @_;
-
-    return $self->request . ': ' . $self->comment . ' (' . $self->time . ')';
-}
-
 1;
