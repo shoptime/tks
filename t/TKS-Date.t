@@ -4,7 +4,7 @@ use warnings;
 use POSIX;
 use Test::More;
 
-plan tests => 49;
+plan tests => 51;
 
 use_ok('TKS::Date');
 
@@ -52,4 +52,8 @@ foreach my $test ( @tests ) {
     }
 }
 
+eval { TKS::Date->new('abc') };
+like($@, qr/^Unable to parse 'abc' as a date/, 'Invalid date "abc" causes error');
 
+eval { TKS::Date->new('06/80/2009') };
+like($@, qr{^Invalid date '06/80/2009'.*date out of range}, 'Invalid date "06/80/2009" causes error');

@@ -126,14 +126,24 @@ sub _make_range {
     return @dates;
 }
 
+sub _validate_isodate {
+    my ($component, $year, $month, $day) = @_;
+
+    eval { Mktime($year, $month, $day, 0, 0, 0) };
+
+    die "Invalid date '$component': $@" if $@;
+}
+
 sub _parse_datecomponent {
     my ($self, $component) = @_;
 
-    if ( $component =~ m{ \A \d\d\d\d - \d\d - \d\d \z }xms ) {
+    if ( $component =~ m{ \A (\d\d\d\d) - (\d\d) - (\d\d) \z }xms ) {
+        _validate_isodate($component, $1, $2, $3);
         return $component;
     }
 
     if ( $component =~ m{ \A ( \d\d\d\d )  / ( \d\d ) / ( \d\d ) \z }xms ) {
+        _validate_isodate($component, $1, $2, $3);
         return "$1-$2-$3";
     }
 
@@ -142,6 +152,7 @@ sub _parse_datecomponent {
         if ( length($year) == 2 ) {
             $year += 2000;
         }
+        _validate_isodate($component, $year, $2, $1);
         return "$year-$2-$1";
     }
 
