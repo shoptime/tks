@@ -5,7 +5,7 @@ use Test::More;
 use File::Slurp;
 use List::Util qw(sum);
 
-plan tests => 15;
+plan tests => 20;
 
 use_ok('TKS::Timesheet');
 
