@@ -150,29 +150,32 @@ sub user_search {
     my ($self, $search) = @_;
 
     unless ( $self->{user_cache} ) {
-        $self->fetch_page('usrsearch.php?org_code=37');
+        $self->{user_cache} = [];
+        my $org = $self->instance_config('org');
+        $org ||= 37; # Catalyst IT (NZ)
+        $org = undef if $org eq 'any';
+
+        $self->fetch_page('usrsearch.php'.($org ? '?org_code='.$org : ''));
 
         my $dom = $self->parse_page;
 
-        my ($table) = grep { $_->findnodes('./tr[1]/*')->size == 5 } $dom->findnodes('//table');
+        my ($table) = grep { $_->findnodes('./tr[1]/*')->size == ($org ? 5 : 6) } $dom->findnodes('//table');
         die "Couldn't find user list table" unless $table;
 
         my @users;
         foreach my $row ( $table->findnodes('./tr') ) {
             my @data = map { $_->textContent } $row->findnodes('./td');
 
-            next unless $data[3] and $data[3] =~ m{ (\d\d)/(\d\d)/(\d\d\d\d) }xms;
-
+            next unless $data[$org ? 3 : 4] and $data[$org ? 3 : 4] =~ m{ (\d\d)/(\d\d)/(\d\d\d\d) }xms;
             next unless $row->findvalue('./td[1]//a/@href') =~ m{ \b user_no = (\d+) \b }xms;
 
-            push @users, {
+            push @{$self->{user_cache}}, {
                 user_no   => $1,
                 username => $data[0],
                 fullname => $data[1],
-                email    => $data[2],
+                email    => $data[$org ? 2 : 3],
             };
         }
-        $self->{user_cache} = \@users;
     }
 
     my @matches = grep { $_->{username} eq $search } @{$self->{user_cache}};

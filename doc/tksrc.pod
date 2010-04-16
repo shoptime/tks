@@ -59,6 +59,11 @@ The default filter to use when processing a file
 Should the B<requestmap> section be treated case insensitively? 
 (0 or 1, default 0.)
 
+=item B<org>
+
+Which organisation ID to use when searching for a user with B<-u>. You can search
+all organisations by specifying "any", but this will be slower.
+
 =back
 
 By default, B<tks> is set to use 
