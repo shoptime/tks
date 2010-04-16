@@ -42,7 +42,8 @@ sub init {
     my $session_id = $self->instance_config('wrms_cookie');
     if ( $session_id ) {
         my $uri = URI->new($self->baseurl);
-        $self->{mech}->cookie_jar->set_cookie(0, 'sid', $session_id, '/', $uri->host);
+        my $cookie_host = $uri->host eq 'localhost' ? 'localhost.local' : $uri->host;
+        $self->{mech}->cookie_jar->set_cookie(0, 'sid', $session_id, '/', $cookie_host);
     }
 }
 
@@ -129,6 +130,7 @@ sub _login {
 
     $mech->cookie_jar->scan(sub {
         my (undef, $key, $value, undef, $domain) = @_;
+        $domain =~ s/^localhost.local$/localhost/;
         return unless $key eq 'sid';
         return unless $self->baseurl =~ m{\Q$domain\E};
         $self->instance_config_set('wrms_cookie', $value);
