@@ -18,6 +18,7 @@ use POSIX;
 our $CASE_INSENSITIVE_REQUEST_MAP = 0;
 
 has 'entries' => ( is => 'rw', isa => 'ArrayRef[TKS::Entry]', required => 1, default => sub { [] } );
+has 'mentioned_dates' => ( is => 'rw', isa => 'ArrayRef[Str]', 'required' => 1, default => sub { [] } );
 has 'backend' => ( is => 'rw', isa => 'TKS::Backend' );
 
 around 'entries' => sub {
@@ -27,6 +28,15 @@ around 'entries' => sub {
 
     return () unless $entries and ref $entries eq 'ARRAY';
     return @{$entries};
+};
+
+around 'mentioned_dates' => sub {
+    my ($orig, $self) = @_;
+
+    my  $mentioned_dates = $self->$orig();
+
+    return () unless $mentioned_dates and ref $mentioned_dates eq 'ARRAY';
+    return  @{$mentioned_dates};
 };
 
 sub from_file {
@@ -55,6 +65,9 @@ sub from_string {
         $timesheet->{parse_line}++;
 
         my $entry = $timesheet->_from_string_parse_line($line);
+        if ( defined $timesheet->{parse_date} ) {
+            $timesheet->addmentioneddate($timesheet->{parse_date});
+        }
 
         next unless $entry;
 
@@ -271,8 +284,8 @@ sub dates {
 
     my $dates = TKS::Date->new();
 
-    foreach my $entry ( $self->entries ) {
-        $dates->add_datespec($entry->date);
+    foreach my $mentioned_date ( $self->mentioned_dates ) {
+        $dates->add_datespec($mentioned_date);
     }
 
     return $dates;
@@ -357,6 +370,15 @@ sub addentry {
     my ($self, $entry) = @_;
 
     push @{$self->{entries}}, $entry;
+    $self->addmentioneddate($entry->date);
+}
+
+sub addmentioneddate { 
+    my ($self, $date) = @_;
+
+    if ( ! grep { $_ eq $date } @{$self->{mentioned_dates}} ) {
+        push @{$self->{mentioned_dates}}, $date;
+    }
 }
 
 sub addtimesheet {
@@ -423,7 +445,6 @@ sub as_string {
     my ($self, $color) = @_;
 
     my $output = '';
-    my $date;
     my $date_total;
 
     unless ( $self->entries ) {
@@ -444,43 +465,48 @@ sub as_string {
         );
     };
 
-    foreach my $entry ( sort { $a->date cmp $b->date or $a->request cmp $b->request or $a->comment cmp $b->comment } $self->entries ) {
-        unless ( $date and $date eq $entry->date ) {
-            if ( defined $date_total ) {
-                $output .= $format_hours->($date_total);
-            }
-            $output .= "\n" . ( $color ? color('bold magenta') : '' ) . $entry->date;
-            if ( $entry->date =~ m{ \A (\d\d\d\d)-(\d\d)-(\d\d) \z }xms ) {
-                $output .= $color ? color('bold blue') : '';
-                $output .= ' # ' . strftime('%A', 0, 0, 0, $3, $2 - 1, $1 - 1900);
-            }
-            $output .= $color ? color('reset') : '';
-            $output .= "\n\n";
-            $date = $entry->date;
-            $date_total = 0;
+    foreach my $date ( sort $self->mentioned_dates ) {
+        $output .= "\n" . ( $color ? color('bold magenta') : '' ) . $date;
+        if ( $date =~ m{ \A (\d\d\d\d)-(\d\d)-(\d\d) \z }xms ) {
+            $output .= $color ? color('bold blue') : '';
+            $output .= ' # ' . strftime('%A', 0, 0, 0, $3, $2 - 1, $1 - 1900);
         }
+        $output .= $color ? color('reset') : '';
+        $output .= "\n";
+        $date_total = 0;
 
-        next if $entry->request eq '-';
+        foreach my $entry ( sort { $a->date cmp $b->date or $a->request cmp $b->request or $a->comment cmp $b->comment } grep { $_->date eq $date } $self->entries ) { 
+            next if $entry->request eq '-';
 
-        $date_total += $entry->time;
-        my $request_color = 'yellow';
-        if ( $self->backend and not $self->backend->valid_request($entry->request) ) {
-            $request_color = 'bold red';
+            $date_total += $entry->time;
+            my $request_color = 'yellow';
+            if ( $self->backend and not $self->backend->valid_request($entry->request) ) {
+                $request_color = 'bold red';
+            }
+            $output .= sprintf(
+                "%s%-12s %s%5.2f    %s%s%s%s\n",
+                $color ? color($request_color) : '',
+                config('reverserequestmap', $entry->request) || $entry->request,
+                $color ? color('reset') . color('green') : '',
+                $entry->time,
+                $color ? color('red') : '',
+                $entry->needs_review ? '[review] ' : '',
+                $color ? color('reset') : '',
+                $entry->comment,
+            );
         }
-        $output .= sprintf(
-            "%s%-12s %s%5.2f    %s%s%s%s\n",
-            $color ? color($request_color) : '',
-            config('reverserequestmap', $entry->request) || $entry->request,
-            $color ? color('reset') . color('green') : '',
-            $entry->time,
-            $color ? color('red') : '',
-            $entry->needs_review ? '[review] ' : '',
-            $color ? color('reset') : '',
-            $entry->comment,
-        );
-    };
-    if ( defined $date_total ) {
-        $output .= $format_hours->($date_total);
+        if ( $date_total ) {
+            $output .= $format_hours->($date_total);
+        }
+        else {
+            if ( $color ) {
+                $output .= color('bold blue');
+            }
+            $output .= "#  Day mentioned only; no entries\n";
+            if ( $color ) {
+                $output .= color('reset');
+            }
+        }
     }
 
     if ( $self->time ) {
