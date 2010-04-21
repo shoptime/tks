@@ -86,6 +86,11 @@ BEGIN {
 
     if ( $file ) {
         $config = Config::IniFiles->new( -file => $file );
+        unless ( defined $config ) {
+            print "There were errors processing your tksrc file ($file)\n\n";
+            print join("\n", @Config::IniFiles::errors), "\n";
+            exit 1;
+        }
     }
     else {
         $config = Config::IniFiles->new();
