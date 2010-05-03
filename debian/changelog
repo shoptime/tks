@@ -1,3 +1,15 @@
+tks (1.0.5) unstable; urgency=low
+
+  * bug#5072 - Keep track of empty days in timesheet file and make empty on the server too
+  * bug#3863 - user search organisation configurable
+  * bug#3604 - Fixed date validation (no more 06/80/2009)
+  * bug#3689 - Empty timesheets return 0 total time
+  * Make config file errors display useful error messages
+  * manpage overhaul (thanks Lars)
+  * Improved tests
+
+ -- Martyn Smith <martyn@catalyst.net.nz>  Tue, 04 May 2010 09:39:39 +1200
+
 tks (1.0.4) unstable; urgency=low
 
   * Support for "case insensitive" request maps (read `man tksrc`)
