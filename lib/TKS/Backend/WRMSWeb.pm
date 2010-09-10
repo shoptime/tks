@@ -321,10 +321,12 @@ sub add_timesheet {
 
     my $count = 0;
     foreach my $entry ( sort { $a->time <=> $b->time } $existing->compact->entries ) {
+        my $comment = $entry->comment;
+        $comment =~ s/[\x80-\xff]+/??/g;
         my $data = to_json({
             work_on          => $entry->date,
             request_id       => $entry->request,
-            work_description => $entry->comment,
+            work_description => $comment,
             hours            => sprintf('%.2f', $entry->time),
             needs_review     => $entry->needs_review,
         });
