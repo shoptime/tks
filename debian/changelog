@@ -1,3 +1,9 @@
+tks (1.0.6) unstable; urgency=low
+
+  * Don't send non-ASCII characters to WRMS (send a '??' instead)
+
+ -- Martyn Smith <martyn@catalyst.net.nz>  Mon, 13 Sep 2010 09:31:49 +1200
+
 tks (1.0.5) unstable; urgency=low
 
   * bug#5072 - Keep track of empty days in timesheet file and make empty on the server too
