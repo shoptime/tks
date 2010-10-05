@@ -10,7 +10,7 @@ clean:
 	dh_testdir
 	dh_testroot
 	dh_clean
-	rm -f debian/tks.1 debian/tksrc.5
+	rm -f debian/tks.1 debian/tksrc.5 debian/hamster2tks.1
 
 binary:
 	dh_testdir
@@ -18,9 +18,10 @@ binary:
 	dh_installchangelogs
 	dh_installdocs
 	pod2man --center="User Manuals" tks.pl > $(CURDIR)/debian/tks.1
+	pod2man --center="User Manuals" hamster2tks.pl > $(CURDIR)/debian/hamster2tks.1
 	pod2man --section 5 --center="File Formats" doc/tksrc.pod > $(CURDIR)/debian/tksrc.5
-	dh_installman debian/tks.1 debian/tksrc.5
-	rm -f debian/tks.1 debian/tksrc.5
+	dh_installman debian/tks.1 debian/tksrc.5 debian/hamster2tks.1
+	rm -f debian/tks.1 debian/tksrc.5 debian/hamster2tks.1
 	dh_compress
 	dh_fixperms
 
@@ -30,6 +31,7 @@ binary:
 	dh_install
 
 	cp $(CURDIR)/tks.pl $(CURDIR)/debian/tks/usr/bin/tks
+	cp $(CURDIR)/hamster2tks.pl $(CURDIR)/debian/tks/usr/bin/hamster2tks
 
 	dh_gencontrol
 	dh_md5sums

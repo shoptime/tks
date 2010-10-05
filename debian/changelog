@@ -1,3 +1,9 @@
+tks (1.0.7) unstable; urgency=low
+
+  * Added hamster2tks application
+
+ -- Matthew Hunt <matt@catalyst.net.nz>  Tue, 05 Oct 2010 11:47:15 +1300
+
 tks (1.0.6) unstable; urgency=low
 
   * Don't send non-ASCII characters to WRMS (send a '??' instead)
