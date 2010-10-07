@@ -1,3 +1,9 @@
+tks (1.0.8) unstable; urgency=low
+
+  * Implemented "extra" flag for display WR summaries
+
+ -- Martyn Smith <martyn@catalyst.net.nz>  Thu, 07 Oct 2010 16:52:35 +1300
+
 tks (1.0.7) unstable; urgency=low
 
   * Added hamster2tks application
