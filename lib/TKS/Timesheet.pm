@@ -436,13 +436,13 @@ sub filter_request {
 }
 
 sub as_color_string {
-    my ($self) = @_;
+    my ($self, $backend) = @_;
 
-    return $self->as_string(1);
+    return $self->as_string($backend, 1);
 }
 
 sub as_string {
-    my ($self, $color) = @_;
+    my ($self, $backend, $color) = @_;
 
     my $output = '';
     my $date_total;
@@ -512,6 +512,10 @@ sub as_string {
     if ( $self->time ) {
         $output .= $color ? color('bold blue') : '';
         $output .= "\n# Total hours: " . sprintf('%.2f', $self->time) . "\n";
+    }
+
+    if ( $backend and $backend->can('post_comment') ) {
+        $output .= "\n" . $backend->post_comment($self);
     }
 
     $output .= $color ? color('reset') : '';

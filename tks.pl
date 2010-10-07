@@ -32,7 +32,7 @@ use Term::ANSIColor;
 
 my(%opt);
 
-if(!GetOptions(\%opt, 'help|?', 'version', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s', 'force', 'template|t=s')) {
+if(!GetOptions(\%opt, 'help|?', 'version', 'extra', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s', 'force', 'template|t=s')) {
     pod2usage(-exitval => 1,  -verbose => 0);
 }
 
@@ -46,6 +46,7 @@ $opt{filename} = shift;
 
 $opt{section} ||= 'default';
 $opt{filter} ||= config($opt{section}, 'defaultfilter');
+$opt{extra} ||= config($opt{section}, 'extra');
 delete $opt{filter} if $opt{filter} and $opt{filter} eq 'all';
 
 if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit template))) > 1) {
@@ -143,10 +144,10 @@ sub ts_print {
     my ($timesheet) = @_;
 
     if ( -t STDOUT and not $opt{'no-color'} ) {
-        print $timesheet->as_color_string;
+        print $timesheet->as_color_string($opt{extra} ? $backend : undef);
     }
     else {
-        print $timesheet->as_string;
+        print $timesheet->as_string($opt{extra} ? $backend : undef);
     }
 }
 
@@ -190,6 +191,11 @@ Write a summary of command line use.
 =item B<--version>
 
 Write the version of the program.
+
+=item B<--extra>
+
+Display extra information as comments after timesheets (if your backend
+supports it)
 
 =back
 

@@ -372,5 +372,33 @@ sub parse_page {
     die q{XML::LibXML couldn't parse '} . $self->{mech}->uri . q{': } . $@;
 }
 
+sub post_comment {
+    my ($self, $timesheet) = @_;
+
+    my $output = '';
+
+    my $uri = URI->new('http://wrms.abelard.wgtn.cat-it.co.nz/json');
+    $uri->query_form({
+        q => 'request_id:(' . join(' OR ', map { $_->request } $timesheet->entries) . ')',
+        searchadvanced => 1,
+    });
+
+    $self->fetch_page($uri);
+    my $data = eval { from_json($self->{mech}->content); };
+
+    if ( $data ) {
+        foreach my $wr ( sort { $a->{request_id} <=> $b->{request_id} } @{$data->{results}} ) {
+            $output .= sprintf
+                "# WR #%d [%s] %s\n",
+                $wr->{request_id},
+                $wr->{system_code_facet}[0],
+                $wr->{brief},
+            ;
+        }
+    }
+
+    return $output;
+}
+
 
 1;
