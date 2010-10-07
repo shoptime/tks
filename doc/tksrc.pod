@@ -64,6 +64,13 @@ Should the B<requestmap> section be treated case insensitively?
 Which organisation ID to use when searching for a user with B<-u>. You can search
 all organisations by specifying "any", but this will be slower.
 
+=item B<extra>
+
+Display extra information as comments after timesheets (if your backend
+supports it).
+
+Values 0 or 1
+
 =back
 
 By default, B<tks> is set to use 
