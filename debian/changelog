@@ -1,3 +1,9 @@
+tks (1.0.9) unstable; urgency=low
+
+  * Implemented "quiet" flag for committing time from cron
+
+ -- Matthew Hunt <matt@catalyst.net.nz>  Tue, 12 Oct 2010 11:44:37 +1300
+
 tks (1.0.8) unstable; urgency=low
 
   * Implemented "extra" flag for display WR summaries

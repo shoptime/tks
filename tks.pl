@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-our $VERSION = '1.0.6';
+our $VERSION = '1.0.9';
 
 use strict;
 use warnings;
@@ -32,7 +32,7 @@ use Term::ANSIColor;
 
 my(%opt);
 
-if(!GetOptions(\%opt, 'help|?', 'version', 'extra', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s', 'force', 'template|t=s')) {
+if(!GetOptions(\%opt, 'help|?', 'version', 'extra', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s', 'force', 'template|t=s', 'quiet|q')) {
     pod2usage(-exitval => 1,  -verbose => 0);
 }
 
@@ -48,6 +48,9 @@ $opt{section} ||= 'default';
 $opt{filter} ||= config($opt{section}, 'defaultfilter');
 $opt{extra} ||= config($opt{section}, 'extra');
 delete $opt{filter} if $opt{filter} and $opt{filter} eq 'all';
+
+# quiet mode is only supported when using commit mode (for use from cron)
+delete $opt{quiet} if not $opt{commit};
 
 if ( length(join('', map { $opt{$_} ? 'x' : '' } qw(commit list edit template))) > 1) {
     pod2usage(-exitval => 1, -message => "Options commit, list, template, and edit are mutually exclusive\n", -verbose => 0);
@@ -110,13 +113,18 @@ else {
     }
 
     $timesheet->backend($backend);
-    ts_print($timesheet);
+    !$opt{quiet} && ts_print($timesheet);
     if ( $opt{commit} ) {
         my $existing = $backend->get_timesheet($timesheet->dates);
         my $diff = $existing->diff($timesheet);
         if ( $diff->entries ) {
-            print STDERR "Committing ...\n";
-            $backend->add_timesheet($diff, 1);
+            if ( $opt{quiet} ) {
+                $backend->add_timesheet($diff, 0);
+            }
+            else {
+                print STDERR "Committing ...\n";
+                $backend->add_timesheet($diff, 1);
+            }
         }
         else {
             print STDERR "No changes, nothing to commit\n";
@@ -196,6 +204,11 @@ Write the version of the program.
 
 Display extra information as comments after timesheets (if your backend
 supports it)
+
+=item B<--quiet>
+
+Do not display any progress or timesheet messages when committing
+timesheet (for using TKS from cron).
 
 =back
 
