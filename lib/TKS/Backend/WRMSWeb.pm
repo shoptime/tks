@@ -377,9 +377,11 @@ sub post_comment {
 
     my $output = '';
 
+    return '' unless grep { $_->request ne '-' } $timesheet->entries;
+
     my $uri = URI->new('http://wrms.abelard.wgtn.cat-it.co.nz/json');
     $uri->query_form({
-        q => 'request_id:(' . join(' OR ', map { $_->request } $timesheet->entries) . ')',
+        q => 'request_id:(' . join(' OR ', map { $_->request } grep { $_->request ne '-' } $timesheet->entries) . ')',
         searchadvanced => 1,
     });
 
