@@ -388,7 +388,7 @@ sub post_comment {
     $self->fetch_page($uri);
     my $data = eval { from_json($self->{mech}->content); };
 
-    if ( $data ) {
+    if ( $data and $data->{numFound} > 0 ) {
         foreach my $wr ( sort { $a->{request_id} <=> $b->{request_id} } @{$data->{results}} ) {
             $output .= sprintf
                 "# WR #%d [%s] %s\n",
