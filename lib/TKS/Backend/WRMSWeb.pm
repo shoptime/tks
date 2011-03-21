@@ -228,13 +228,13 @@ sub get_timesheet_scrape {
     foreach my $row ( $table->findnodes('./tr') ) {
         my @data = map { $_->textContent } $row->findnodes('./td');
 
-        next unless $data[2] and $data[2] =~ m{ \A (\d\d)/(\d\d)/(\d\d\d\d) \z }xms;
+        next unless $data[3] and $data[3] =~ m{ \A (\d\d)/(\d\d)/(\d\d\d\d) \z }xms;
 
         my $entry = {
             date         => "$3-$2-$1",
-            request      => $data[1],
-            comment      => $data[6],
-            time         => $data[3],
+            request      => $data[2],
+            comment      => $data[7],
+            time         => $data[4],
             needs_review => $data[8],
         };
 
