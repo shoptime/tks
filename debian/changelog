@@ -1,3 +1,10 @@
+tks (1.0.11) maverick; urgency=low
+
+  * Fixed warning for "extra" info
+  * Fixed timesheet scraper when fetching other user timesheets
+
+ -- Martyn Smith <martyn@dollyfish.net.nz>  Mon, 21 Mar 2011 14:29:04 +1300
+
 tks (1.0.10) maverick; urgency=low
 
   * Fixed bug in "extra" output when using the --template flag
