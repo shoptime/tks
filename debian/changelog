@@ -1,3 +1,9 @@
+tks (1.0.12) maverick; urgency=low
+
+  * Fixed screen scraping of timesheet information
+
+ -- Martyn Smith <martyn@dollyfish.net.nz>  Tue, 19 Apr 2011 10:54:40 +1200
+
 tks (1.0.11) maverick; urgency=low
 
   * Fixed warning for "extra" info
