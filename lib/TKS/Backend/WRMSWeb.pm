@@ -221,7 +221,7 @@ sub get_timesheet_scrape {
     $self->fetch_page("form.php?f=timelist&user_no=$user&uncharged=1&from_date=" . $dates->mindate . "&to_date=" . $dates->maxdate);
 
     my $dom = $self->parse_page;
-    my ($table) = grep { $_->findnodes('./tr[1]/*')->size == 13 } $dom->findnodes('//table');
+    my ($table) = grep { $_->findnodes('./tr[1]/*')->size == 14 } $dom->findnodes('//table');
 
     die "Couldn't find data table" unless $table;
 

@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-our $VERSION = '1.0.9';
+our $VERSION = '1.0.12';
 
 use strict;
 use warnings;
