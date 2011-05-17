@@ -147,13 +147,15 @@ sub _parse_datecomponent {
         return "$1-$2-$3";
     }
 
-    if ( $component =~ m{ \A ( \d\d )  / ( \d\d ) / ( \d\d (?: \d\d )?) \z }xms ) {
-        my $year = $3;
+    if ( $component =~ m{ \A ( \d\d? )  / ( \d\d? ) / ( \d\d (?: \d\d )?) \z }xms ) {
+        my ($day, $month, $year) = ($1, $2, $3);
         if ( length($year) == 2 ) {
             $year += 2000;
         }
-        _validate_isodate($component, $year, $2, $1);
-        return "$year-$2-$1";
+        $month = sprintf('%02d', $month);
+        $day = sprintf('%02d', $day);
+        _validate_isodate($component, $year, $month, $day);
+        return "$year-$month-$day";
     }
 
     # Day stuff

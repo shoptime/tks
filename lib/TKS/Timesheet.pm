@@ -138,18 +138,16 @@ sub _from_string_parse_line {
     };
 
     # yyyy-mm-dd or yyyy/mm/dd
-    if ( $line =~ m{ \A ( \d{4} ) ( [/-] ) ( \d{2} ) \2 ( \d{2} ) \b \s* (?: \# .* )? \z }xms ) {
-        $self->{parse_date} = strftime('%F', 0, 0, 0, $4, $3 - 1, $1 - 1900);
-        if ( defined $result->{date} and $result->{date} ge $self->{parse_date} ) {
-            $self->_from_string_fail("Specified date $self->{parse_date} is earlier than the date before it", $result->{line}, 1);
-        }
-        $self->{parse_line_for_date}{$self->{parse_date}} = $result->{line};
-        return;
-    }
-    if (
-        $line =~    m{ \A ( \d+ ) / ( \d+ ) / ( \d\d (?:\d\d)? ) \b \s* (?: \# .* )? \z }xms # dd/mm/yy or dd/mm/yyyy
-    ) {
-        $self->{parse_date} = strftime('%F', 0, 0, 0, $1, $2 - 1, $3 >= 100 ? $3 - 1900 : $3 + 100);
+    if ( $line =~ m{
+        \A
+        (
+              \d\d\d\d - \d\d - \d\d # yyyy-mm-dd
+            | \d\d\d\d / \d\d / \d\d # yyyy/mm/dd
+            | \d\d? / \d\d? / \d\d (?: \d\d )? # d/m/yy or d/m/yyyy
+        )
+        \b \s* (?: \# .* )? \z
+    }xms) {
+        ($self->{parse_date}) = TKS::Date->new($1)->dates;
         if ( defined $result->{date} and $result->{date} ge $self->{parse_date} ) {
             $self->_from_string_fail("Specified date $self->{parse_date} is earlier than the date before it", $result->{line}, 1);
         }

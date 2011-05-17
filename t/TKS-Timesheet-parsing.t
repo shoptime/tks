@@ -5,7 +5,7 @@ use Test::More;
 use File::Slurp;
 use List::Util qw(sum);
 
-plan tests => 20;
+plan tests => 21;
 
 use_ok('TKS::Timesheet');
 
@@ -21,6 +21,9 @@ foreach my $match ( $as_string =~ /\b(\d\d\d\d-\d\d-\d\d)\b/g ) {
     push @dates, $match;
 }
 is('2009-05-17 2009-05-18 2009-05-19 2009-05-20', join(' ', @dates), 'dates: as_string function outputs dates in correct order');
+
+eval { TKS::Timesheet->from_string("29/20/2011\n"); };
+like($@, qr/Invalid date/, '29/20/2011 is an invalid date');
 
 # Hours mode
 $f = TKS::Timesheet->from_file('t/hours.tks');
