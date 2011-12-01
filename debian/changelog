@@ -1,3 +1,11 @@
+tks (1.0.13) maverick; urgency=low
+
+  * Added rerun-timesheet program
+  * Allow use of description of a hamster fact as WRMS description as an
+    alternative if tags aren't set
+
+ -- Matthew Hunt <matt@catalyst.net.nz>  Fri, 02 Dec 2011 11:57:12 +1300
+
 tks (1.0.12) maverick; urgency=low
 
   * Fixed screen scraping of timesheet information

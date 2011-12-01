@@ -86,16 +86,25 @@ if ($opt{list}) {
             # try to get a WR number and a description from the activity
             # name; if the WR part isn't numeric, treat the whole string
             # as the WR number part for the TKS file
-            my ($wr, $short_description) = split(/\s/,
-            $activity->{name}, 2);
+            my ($wr, $short_description) = split(/\s/, $activity->{name}, 2);
             if ($wr !~ /[0-9]/) {
                 $wr .= " $short_description";
             }
 
-            # if no tags are set, tries to use short description
+            # if no tags are set, tries to use the description (if it's
+            # set and less than 81 characters) or the short description
             # instead; the last resort is just to use 'weekly timesheet'
             if (!$tags) {
-                $tags = $short_description || 'weekly timesheet';
+                my $desc_length = length($activity->{description}) || 0;
+                if  ($desc_length > 0 && $desc_length < 81) {
+                    $tags = $activity->{description};
+                }
+                elsif (defined $short_description) {
+                    $tags = $short_description;
+                }
+                else {
+                    $tags = 'weekly timesheet';
+                }
             }
 
             my $hours = int(($activity->{time} / 60) * 100) / 100;
@@ -182,10 +191,10 @@ sub get_activities_by_date {
 
     my $start = $date . " 00:00:00";
     my $end   = $date . " 23:59:59";
-    my ($id, $name, $minutes);
+    my ($id, $name, $description, $minutes);
 
     my $query =<<EOActivitySQL;
-SELECT facts.id, activities.name,
+SELECT facts.id, activities.name, facts.description,
        ((strftime('%s', end_time) - strftime('%s', start_time))/60) AS minutes
   FROM facts LEFT JOIN activities ON (facts.activity_id = activities.id)
  WHERE start_time > ? AND start_time < ? AND end_time IS NOT NULL
@@ -196,7 +205,7 @@ EOActivitySQL
     }
 
     my $sth = $dbh->prepare($query);
-    $sth->bind_columns(\$id, \$name, \$minutes);
+    $sth->bind_columns(\$id, \$name, \$description, \$minutes);
     if ($cat_id) {
         $sth->execute($start, $end, $cat_id);
     }
@@ -206,8 +215,14 @@ EOActivitySQL
 
     my @activities = ();
     while ($sth->fetch) {
-        push @activities,
-         {'id' => $id, 'name' => $name, 'time' => $minutes};
+        $name ||= '';
+        $description ||= '';
+        push @activities, { 
+                            'id' => $id,
+                            'name' => $name, 
+                            'description' => $description,
+                            'time' => $minutes,
+                          };
     }
 
     return @activities;
