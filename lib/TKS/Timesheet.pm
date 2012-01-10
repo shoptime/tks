@@ -222,11 +222,23 @@ sub _from_string_parse_line {
     if ( $line =~ m{
             \A
             ( \d+ | [a-zA-Z0-9_-]+ ) \s+ # Work request number OR alias
-            ( \d\d?:?\d\d \- ) \s+       # Time specified in 24 hour time
+            ( \d\d?:?\d\d ) -        \s+ # Time specified in 24 hour time
             ( \[review\] )?          \s* # Review flag
             ( \S .* )                    # Work description
             \z
         }xms ) {
+
+        $result->{request}      = $1;
+        $result->{time}         = $2;
+        $result->{needs_review} = $3 ? 1 : 0;
+        $result->{comment}      = $4;
+        chomp $result->{comment};
+
+        if ( $result->{date} eq TKS::Date->new('today')->mindate ) {
+            $result->{time} = $self->_from_string_timediff($result->{time}, strftime('%H%M', localtime));
+            return $result;
+        }
+
         $error ||= 'Missing end time for time range';
     }
 
