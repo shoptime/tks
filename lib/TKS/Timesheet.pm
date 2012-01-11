@@ -236,6 +236,7 @@ sub _from_string_parse_line {
 
         if ( $result->{date} eq TKS::Date->new('today')->mindate ) {
             $result->{time} = $self->_from_string_timediff($result->{time}, strftime('%H%M', localtime));
+            $result->{time} += strftime('%S', localtime) / 3600;
             return $result;
         }
 
