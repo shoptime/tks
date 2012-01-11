@@ -263,7 +263,18 @@ sub _from_string_timediff {
     my $minutes_start = $start_hour * 60 + $start_minute;
     my $minutes_end = $end_hour * 60 + $end_minute;
 
-    $self->_from_string_fail("Start time can't be after end time in '$start-$end'") if $minutes_start > $minutes_end;
+    if ( $minutes_start > $minutes_end ) {
+        # Allow this if less than 8 hours between them (we assume that this is
+        # just a time that went on beyond midnight), but if more than 8 hours
+        # has passed, it's probably a "forgot TKS is 24 hour clock only"
+        # problem.
+        if ( $minutes_start - $minutes_end > 16 * 60 ) {
+            $minutes_end += 24 * 60;
+        }
+        else {
+            $self->_from_string_fail("Start time can't be after end time in '$start-$end'") if $minutes_start > $minutes_end;
+        }
+    }
 
     return ( $minutes_end - $minutes_start ) / 60;
 }

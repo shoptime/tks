@@ -5,7 +5,7 @@ use Test::More;
 use File::Slurp;
 use List::Util qw(sum);
 
-plan tests => 21;
+plan tests => 24;
 
 use_ok('TKS::Timesheet');
 
@@ -44,10 +44,17 @@ eval { TKS::Timesheet->from_file('t/missing-comment.tks') };
 chomp $@;
 is($@, "t/missing-comment.tks: line 6: Failed to parse line\n1 1 ", 'Syntax errors correctly detected');
 
-# Negative time
+# Negative time < 8 hours
+eval { $f = TKS::Timesheet->from_file('t/negative-time-ok.tks') };
+chomp $@;
+is($@, '', 'OK negatives times did not result in errors');
+is($f->filter_request(1)->time, 3.75, 'negative hours: WR 1 correct time');
+ok($f->filter_request(2)->time > 7.98 && $f->filter_request(2)->time < 8, 'negative hours: WR 2 correct time'); # nasty recurring number
+
+# Negative time >= 8 hours
 eval { TKS::Timesheet->from_file('t/negative-time.tks') };
 chomp $@;
-is($@, q{t/negative-time.tks: line 6: Start time can't be after end time in '12:30-1:15'}, 'Negative time is not allowed');
+is($@, q{t/negative-time.tks: line 5: Start time can't be after end time in '12:30-1:15'}, 'Negative time is not allowed');
 
 # Missing end time
 eval { TKS::Timesheet->from_file('t/missing-endtime.tks') };

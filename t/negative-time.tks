@@ -1,5 +1,4 @@
-# This file should fail because there's no comment specified for the entry
-# entry
+# This file should fail because the end time is before the start time
 
 2009-05-17
 
