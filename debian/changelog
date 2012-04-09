@@ -1,3 +1,9 @@
+tks (1.0.14) oneiric; urgency=low
+
+  * Added request-filter support
+
+ -- Martyn Smith <martyn@catalyst.net.nz>  Mon, 09 Apr 2012 14:42:29 +1200
+
 tks (1.0.13) maverick; urgency=low
 
   * Added rerun-timesheet program
