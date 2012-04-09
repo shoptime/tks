@@ -32,7 +32,7 @@ use Term::ANSIColor;
 
 my(%opt);
 
-if(!GetOptions(\%opt, 'help|?', 'version', 'extra', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s', 'force', 'template|t=s', 'quiet|q')) {
+if(!GetOptions(\%opt, 'help|?', 'version', 'extra', 'section|s=s', 'list|l=s', 'edit|e=s', 'commit|c', 'no-color', 'user|u=s', 'filter|f=s', 'request-filter|r=s', 'force', 'template|t=s', 'quiet|q')) {
     pod2usage(-exitval => 1,  -verbose => 0);
 }
 
@@ -110,6 +110,10 @@ else {
         $filter_warning = $timesheet->time;
         $timesheet = $timesheet->filter_date($opt{filter});
         $filter_warning -= $timesheet->time;
+    }
+
+    if ( $opt{'request-filter'} ) {
+        $timesheet = $timesheet->filter_request($opt{'request-filter'});
     }
 
     $timesheet->backend($backend);
@@ -226,6 +230,10 @@ Ignores all entries in the provided file
 that fall outside the given I<datespec> (a
 warning will be printed if there are
 entries that fall outside this range).
+
+=item B<-r>, B<--request-filter>=I<request>
+
+Only display entries that are for the specified request.
 
 =item B<--force>
 
