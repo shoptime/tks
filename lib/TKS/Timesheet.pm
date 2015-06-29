@@ -157,10 +157,10 @@ sub _from_string_parse_line {
 
     if ( $line =~ m{
             \A
-            ( \d+ | [a-zA-Z0-9_-]+ ) \s+  # Work request number OR alias
-            ( \d+ | \d* \. \d+ )     \s+  # Time in integer or decimal
-            ( \[review\] )?          \s*  # Review flag
-            ( \S .* )                     # Work description
+            ( \d+ | [/a-zA-Z0-9_-]+ ) \s+  # Work request number OR alias
+            ( \d+ | \d* \. \d+ )      \s+  # Time in integer or decimal
+            ( \[review\] )?           \s*  # Review flag
+            ( \S .* )                      # Work description
             \z
         }xms ) {
         $result->{request}      = $1;
@@ -172,10 +172,10 @@ sub _from_string_parse_line {
 
     if ( $line =~ m{
             \A
-            ( \d+ | [a-zA-Z0-9_-]+ )              \s+ # Work request number OR alias
-            ( \d\d?:?\d\d (?: \- \d\d?:?\d\d )? ) \s+ # Time specified in 24 hour time
-            ( \[review\] )?                       \s* # Review flag
-            ( \S .* )                                 # Work description
+            ( \d+ | [/a-zA-Z0-9_-]+ )              \s+ # Work request number OR alias
+            ( \d\d?:?\d\d (?: \- \d\d?:?\d\d )? )  \s+ # Time specified in 24 hour time
+            ( \[review\] )?                        \s* # Review flag
+            ( \S .* )                                  # Work description
             \z
         }xms ) {
         $result->{request}      = $1;
@@ -221,10 +221,10 @@ sub _from_string_parse_line {
 
     if ( $line =~ m{
             \A
-            ( \d+ | [a-zA-Z0-9_-]+ ) \s+ # Work request number OR alias
-            ( \d\d?:?\d\d ) -        \s+ # Time specified in 24 hour time
-            ( \[review\] )?          \s* # Review flag
-            ( \S .* )                    # Work description
+            ( \d+ | [/a-zA-Z0-9_-]+ ) \s+ # Work request number OR alias
+            ( \d\d?:?\d\d ) -         \s+ # Time specified in 24 hour time
+            ( \[review\] )?           \s* # Review flag
+            ( \S .* )                     # Work description
             \z
         }xms ) {
 
@@ -506,7 +506,7 @@ sub as_string {
                 $request_color = 'bold red';
             }
             $output .= sprintf(
-                "%s%-12s %s%5.2f    %s%s%s%s\n",
+                "%s%-24s %s%5.2f    %s%s%s%s\n",
                 $color ? color($request_color) : '',
                 config('reverserequestmap', $entry->request) || $entry->request,
                 $color ? color('reset') . color('green') : '',
