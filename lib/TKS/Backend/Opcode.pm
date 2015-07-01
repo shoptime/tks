@@ -102,7 +102,7 @@ sub get_timesheet {
     my $entries = $self->get_json('entry/list/' . epoch_for_date($dates->mindate) . '/' . datetime_for_date($dates->maxdate)->add(days => 1)->epoch);
 
     for my $entry (@{$entries}) {
-        my $date = DateTime->from_epoch(epoch => $entry->{start});
+        my $date = DateTime->from_epoch(epoch => $entry->{start}, time_zone => 'Pacific/Auckland');
         my $hours = ($entry->{stop} - $entry->{start}) / 3600;
         $timesheet->addentry(TKS::Entry->new(
             date         => $date->strftime('%F'),
@@ -127,7 +127,7 @@ sub add_timesheet {
     my $target_timesheet = $timesheet->diff($existing->invert)->invert;
 
     my @entries;
-    foreach my $entry (sort { $a->time <=> $b->time } $timesheet->compact->entries) {
+    foreach my $entry (sort { $a->time <=> $b->time } $target_timesheet->compact->entries) {
         my ($client, $facet) = split(m{/}, $entry->request, 2);
 
         my ($year, $month, $day) = $entry->date =~ /^(\d\d\d\d)-(\d\d)-(\d\d)$/;
@@ -148,6 +148,8 @@ sub add_timesheet {
             start       => epoch_for_date($entry->date, 8),
             stop        => epoch_for_date($entry->date, 8) + 3600 * $entry->time,
         };
+        $entries[-1]->{start} += 0;
+        $entries[-1]->{stop} += 0;
     }
 
     my $replace_from = epoch_for_date($timesheet->dates->mindate);
